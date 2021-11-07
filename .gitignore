@@ -1,1 +1,28 @@
+# Dev files
+?.*
+*.temp.*
+
+# IDE
+.vscode
+.idea
+
+# Dependencies
 node_modules
+
+# Database
+database
+
+# yarn error logs
+yarn-error.log
+
+# Environment varibales
+.env
+.test.env
+!.env*.example
+env/
+
+# Code coverage
+coverage
+.nyc_output
+
+*.copy
