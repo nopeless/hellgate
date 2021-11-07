@@ -1,0 +1,17 @@
+{
+  "name": "brimestone-hell",
+  "version": "1.0.0",
+  "description": "An agonistic access control library that has great DENY support",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "c8": "^7.10.0",
+    "chai": "^4.3.4",
+    "mocha": "^9.1.3"
+  }
+}
