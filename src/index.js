@@ -6,6 +6,12 @@ function assignToPrototype(obj, proto, v = (k => k)) {
   }
 }
 
+function* iterArr(...args) {
+  for (const arr of args) {
+    yield* arr;
+  }
+}
+
 function _isHigher(a, b, map) {
   if (a.length === 0) return false;
   if (b.length === 0) return true;
@@ -29,8 +35,9 @@ const PromiseChain_args = Symbol(`args`);
 const PromiseChain_ring = Symbol(`ring`);
 
 class IHotel {
-  static statusesSymbol = Symbol(`User Statuses`);
+  static statusesSymbol = Symbol(`User statuses`);
   static sinsSymbol = Symbol(`User sins`);
+  static selfStatus = Symbol(`Property statuses`);
 
   static hasDefinitions(obj) {
     return obj[IHotel.statusesSymbol] !== undefined && obj[IHotel.sinsSymbol] !== undefined;
@@ -46,16 +53,12 @@ class IHotel {
     return user;
   }
 
-  get userResolver() {
-    return (...args) => this.user(...args);
-  }
-
   loadStatusMap(statusMap) {
-    this._statuses = generateStatusMap(statusMap);
+    this[IHotel.selfStatus] = generateStatusMap(statusMap);
   }
 
   get statuses() {
-    return this._statuses;
+    return this[IHotel.selfStatus];
   }
 }
 
@@ -130,19 +133,50 @@ class Ring {
     assignToPrototype(sinAuthorities, this.chain.sins, () => null);
     assignToPrototype(resolvers, this.chain.resolvers);
 
-    // Promise Resolver
-    class ResolverPromiseChain extends Promise {}
+    let cls;
 
-    for (const [property, func] of prototypeEntries(resolvers)) {
-      ResolverPromiseChain.prototype[property] = function (...args) {
+    if (parent === null) {
+      // Promise Resolver
+      class ResolverPromiseChain extends Promise {
+        // user(...args) {
+        //   const ring = this[PromiseChain_ring];
+        //   this[PromiseChain_args].push(ring.user(...args));
+        //   return this;
+        // }
+      }
+      cls = ResolverPromiseChain;
+    } else {
+      class ResolverPromiseChain extends parent.ResolverPromiseChain {}
+      cls = ResolverPromiseChain;
+    }
+
+    for (const [property, func] of Object.entries(resolvers)) {
+      cls.prototype[property] = function (...args) {
         const ring = this[PromiseChain_ring];
         this[PromiseChain_args].push(Reflect.apply(func, ring, args));
         return this;
       };
     }
 
-    this.ResolverPromiseChain = ResolverPromiseChain;
+    this.ResolverPromiseChain = cls;
+  }
 
+  setResolver(resolver, func) {
+    this.ResolverPromiseChain.prototype[resolver] = function (...args) {
+      const ring = this[PromiseChain_ring];
+      this[PromiseChain_args].push(Reflect.apply(func, ring, args));
+      return this;
+    };
+  }
+
+  set resolvers(resolvers) {
+    for (const [property, func] of Object.entries(resolvers)) {
+      this.ResolverPromiseChain.prototype[property] = function (...args) {
+        const ring = this[PromiseChain_ring];
+        this[PromiseChain_args].push(Reflect.apply(func, ring, args));
+        return this;
+      };
+    }
   }
 
   authCheck(statuses, sins, authority) {
@@ -200,7 +234,7 @@ class Ring {
   /**
    * Helper method to help create custom permission methods
    */
-  proxy(func, args) {
+  proxy(func, args = []) {
     let resolve;
 
     const promise = new this.ResolverPromiseChain(r => { resolve = r; });
@@ -341,6 +375,12 @@ class Ring {
 function Hellgate(hotel, baseRing) {
   baseRing = baseRing ?? new Ring();
   baseRing.hotel = hotel;
+  const props = Object.getOwnPropertyDescriptors(Object.getPrototypeOf(hotel));
+  delete props.constructor;
+  const entries = Object.entries(props).map(v => [v[0], v[1].value]);
+  for (const [k, v] of iterArr(Object.entries(hotel), entries)) {
+    baseRing.setResolver(k, (...args) => Reflect.apply(v, hotel, args));
+  }
   return baseRing;
 }
 

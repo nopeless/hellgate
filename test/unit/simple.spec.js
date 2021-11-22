@@ -23,7 +23,13 @@ const users = {
   },
 };
 
-const hotel = new LambdaHotel(name => {
+class MyHotel extends LambdaHotel {
+  number(a = 0) {
+    return a;
+  }
+}
+
+const hotel = new MyHotel(name => {
   const user = users[name];
   if (user) {
     return [user, user.statuses, user.sins];
@@ -39,6 +45,11 @@ class ExtendedRing extends Ring {
   canUserAndUser(user1, user2, authority) {
     return this.proxy(this.resolveAuthorityFunction(authority), [authority]).user(user1).user(user2);
   }
+  sum(...args) {
+    return this.proxy((...array) => {
+      return array.reduce((sum, value) => sum + value, 0);
+    }, args);
+  }
 }
 
 const hellgate = new Hellgate(hotel, new ExtendedRing(null, {
@@ -47,6 +58,9 @@ const hellgate = new Hellgate(hotel, new ExtendedRing(null, {
   firstclass: false,
   marry: async function(_, user1, user2) {
     return await this.can(user1, `kiss`) && await this.can(user2, `kiss`);
+  },
+  hit: async function(user1, _, user2) {
+    return await this.compare(user1, user2) === 1;
   },
 }, {
   firstclass: [`highclass`],
@@ -57,9 +71,8 @@ const hellgate = new Hellgate(hotel, new ExtendedRing(null, {
   lover: {
     kiss: true,
   },
-}, {
-  user: hotel.userResolver,
 }));
+
 
 describe(`Simple permission with no fancy functions`, function() {
   it(`Should all pass`, async function() {
@@ -86,5 +99,15 @@ describe(`Simple permission with no fancy functions`, function() {
     await expect(hellgate.canUserAndUser(`jack`, `james`, `marry`)).to.eventually.be.false;
     await expect(hellgate.canUserAndUser(`james`, `rose`, `marry`)).to.eventually.be.false;
     await expect(hellgate.canUserAndUser(`james`, `underpants`, `marry`)).to.eventually.be.false;
+
+    // hitting
+    await expect(hellgate.can(`jack`, `hit`).user(`rose`)).to.eventually.be.false;
+    await expect(hellgate.can(`rose`, `hit`).user(`jack`)).to.eventually.be.true;
+    await expect(hellgate.can(`james`, `hit`).user(`jack`)).to.eventually.be.false;
+    await expect(hellgate.can(`underpants`, `hit`).user(`jack`)).to.eventually.be.true;
+
+    // sum function
+    const res = await hellgate.sum().number(123).number(123);
+    expect(res).to.equal(246);
   });
 });
