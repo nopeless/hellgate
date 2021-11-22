@@ -1,4 +1,6 @@
 
+# THIS PROJECT IS IN BETA
+
 # Role based access control
 
 Hellgate is an agonistic role based access control with DENY that is easy to implement but also highly customizable.
