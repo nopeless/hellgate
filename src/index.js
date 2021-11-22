@@ -95,7 +95,7 @@ class CombinedStatusSinHotel extends IHotel {
 
 class Ring {
   constructor(parent = null, everyone = {}, statusAuthorities = {}, sinAuthorities = {}, resolvers = {}) {
-    this.parent = parent;
+    this._parent = parent;
 
     // default authorities
     this.everyone = everyone;
@@ -292,6 +292,10 @@ class Ring {
     return this._rings;
   }
 
+  get parent() {
+    return this._parent;
+  }
+
   get hotel() {
     // TODO: benchmark prototype optimization performance later
     return this._hotel ?? this.parent.hotel;
@@ -311,6 +315,12 @@ class Ring {
       res.unshift(node);
     }
     return res;
+  }
+
+  delete() {
+    if (this.parent) {
+      this.parent._rings = this.parent._rings.filter(v => v !== this);
+    }
   }
 
   async compare(a, b) {
