@@ -28,12 +28,12 @@ function prototypeEntries(obj) {
 const PromiseChain_args = Symbol(`args`);
 const PromiseChain_ring = Symbol(`ring`);
 
-class Hotel {
+class IHotel {
   static statusesSymbol = Symbol(`User Statuses`);
   static sinsSymbol = Symbol(`User sins`);
 
   static hasDefinitions(obj) {
-    return obj[Hotel.statusesSymbol] !== undefined && obj[Hotel.sinsSymbol] !== undefined;
+    return obj[IHotel.statusesSymbol] !== undefined && obj[IHotel.sinsSymbol] !== undefined;
   }
 
   constructor(statusMap = {}) {
@@ -41,8 +41,8 @@ class Hotel {
   }
 
   async user(user, statuses = [], sins = []) {
-    user[Hotel.statusesSymbol] = statuses;
-    user[Hotel.sinsSymbol] = sins;
+    user[IHotel.statusesSymbol] = statuses;
+    user[IHotel.sinsSymbol] = sins;
     return user;
   }
 
@@ -56,7 +56,7 @@ class Hotel {
 }
 
 
-class LambdaHotel extends Hotel {
+class LambdaHotel extends IHotel {
   /**
    * Accepts a function that returns [user, statuses, sins];
    */
@@ -72,7 +72,7 @@ class LambdaHotel extends Hotel {
   }
 }
 
-class CombinedStatusSinHotel extends Hotel {
+class CombinedStatusSinHotel extends IHotel {
   /**
    * Accepts a function that returns [user, statusAndSins];
    */
@@ -191,7 +191,7 @@ class Ring {
   }
 
   async user(userResolvable) {
-    return Hotel.hasDefinitions(userResolvable) ? userResolvable : Reflect.apply(this.hotel.user, this, [userResolvable]);
+    return IHotel.hasDefinitions(userResolvable) ? userResolvable : Reflect.apply(this.hotel.user, this, [userResolvable]);
   }
 
   /**
@@ -216,7 +216,7 @@ class Ring {
         // true or false validation
         // eslint-disable-next-line no-async-promise-executor
         return new Promise(async r => {
-          const { [Hotel.statusesSymbol]: statuses, [Hotel.sinsSymbol]: sins } = await user;
+          const { [IHotel.statusesSymbol]: statuses, [IHotel.sinsSymbol]: sins } = await user;
           r(this.authCheck(statuses, sins, authority));
         });
       }
@@ -265,8 +265,8 @@ class Ring {
   async compare(a, b) {
     a = await this.user(a);
     b = await this.user(b);
-    a = a[Hotel.statusesSymbol];
-    b = b[Hotel.statusesSymbol];
+    a = a[IHotel.statusesSymbol];
+    b = b[IHotel.statusesSymbol];
     const statuses = this.hotel.statuses;
     if (_isHigher(a, b, statuses)) return 1;
     if (_isHigher(b, a, statuses)) return -1;
@@ -283,90 +283,10 @@ function Hellgate(hotel, baseRing) {
   return baseRing;
 }
 
-const users = {
-  jack: {
-    name: `Jack`,
-    statuses: [],
-    sins: [`criminal`, `lover`],
-    money: 100,
-  },
-  rose: {
-    name: `Rose`,
-    statuses: [`highclass`],
-    sins: [`lover`],
-    money: 1000,
-  },
-  james: {
-    name: `James`,
-    statuses: [],
-    sins: [],
-    money: 0,
-  },
+module.exports = {
+  Hellgate,
+  Ring,
+  IHotel,
+  LambdaHotel,
+  CombinedStatusSinHotel,
 };
-
-const loveHotel = new LambdaHotel(id => {
-  const user = users[id];
-  if (user === undefined) {
-    throw new Error(`user '${id}' is not defined`);
-  }
-  return [user, user.statuses, user.sins];
-});
-
-const loveHotel2 = new CombinedStatusSinHotel(id => {
-  const user = users[id];
-  if (user === undefined) {
-    throw new Error(`user '${id}' is not defined`);
-  }
-  return [user, [...user.statuses, ...user.sins]];
-});
-
-loveHotel.loadStatusMap({
-  captain: [`highclass`],
-  highclass: [`commoner`, `lover`],
-});
-
-async function compounder(user, permission) {
-  const permissions = permission.split(`N`);
-  for (const p of permissions) {
-    const c = await this.can(user, p);
-    if (!c) {
-      return false;
-    }
-  }
-  return true;
-}
-
-const hellgate = new Hellgate(loveHotel, new Ring(null, {
-  walk: true,
-  run: true,
-  love: false,
-  walkNrun: compounder,
-  kiss: async function(a, _, b) {
-    if (!b) throw new Error(`user b required`);
-    return await this.can(a, `love`) && await this.can(b, `love`) && await this.compare(a, b) >= 0;
-  },
-}, {
-  love: [`highclass`, `lover`],
-}, {
-  // lover: {
-  //   love: true,
-  // },
-  muted: {
-    walk: false,
-  },
-}, {
-  user: function(...args) {
-    return this.user(...args);
-  },
-}));
-
-hellgate.can(`james`, `love`);
-hellgate.can(`jack`, `love`);
-hellgate.can(`rose`, `love`);
-
-// hellgate.can(`jack`, `run`);
-(async () => {
-  await hellgate.can(`jack`, `walkNrun`);
-  await hellgate.can(`jack`, `kiss`).user(`rose`);
-  await hellgate.can(`rose`, `kiss`, `jack`);
-})();
