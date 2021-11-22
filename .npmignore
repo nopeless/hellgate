@@ -1,6 +1,6 @@
-.*
+**/*.*
 
+!LICENSE
 !package.json
-!package-lock.json
 !src/index.js
 !src/status.js
