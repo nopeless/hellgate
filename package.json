@@ -5,6 +5,7 @@
   "main": "src/index.js",
   "scripts": {
     "test": "mocha --config test/.mocharc.js --recursive ./test/**/*.spec.js",
+    "locov": "c8 --reporter=lcov npm test",
     "prepublish": "npm publish --dry-run"
   },
   "keywords": [
