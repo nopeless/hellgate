@@ -1,6 +1,6 @@
 {
   "name": "hellgate",
-  "version": "1.0.0",
+  "version": "0.0.1-beta",
   "description": "An agonistic access control library that has great DENY support",
   "main": "src/index.js",
   "scripts": {
