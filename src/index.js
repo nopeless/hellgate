@@ -101,8 +101,7 @@ class Ring {
     this.sinAuthorities = sinAuthorities;
 
     // Read-only
-    this.resolvers = resolvers;
-    this.rings = [];
+    this._rings = [];
 
     if (parent === null) {
       // Definition chain for root
@@ -239,6 +238,10 @@ class Ring {
 
   proc(func, ...args) {
     return Reflect.apply(func, this, args);
+  }
+
+  get rings() {
+    return this._rings;
   }
 
   get hotel() {
