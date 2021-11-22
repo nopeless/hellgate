@@ -46,6 +46,10 @@ class IHotel {
     return user;
   }
 
+  get userResolver() {
+    return (...args) => this.user(...args);
+  }
+
   loadStatusMap(statusMap) {
     this._statuses = generateStatusMap(statusMap);
   }
@@ -191,6 +195,50 @@ class Ring {
 
   async user(userResolvable) {
     return IHotel.hasDefinitions(userResolvable) ? userResolvable : Reflect.apply(this.hotel.user, this, [userResolvable]);
+  }
+
+  /**
+   * Helper method to help create custom permission methods
+   */
+  proxy(func, args) {
+    let resolve;
+
+    const promise = new this.ResolverPromiseChain(r => { resolve = r; });
+
+    promise[PromiseChain_args] = [...args];
+    promise[PromiseChain_ring] = this;
+
+    process.nextTick(async () => {
+      const args = await Promise.all(promise[PromiseChain_args]);
+      resolve(Reflect.apply(func, this, args));
+    });
+
+    return promise;
+  }
+
+  /**
+   * resolves an authority function, throws an error when it is not.
+   */
+  resolveAuthorityFunction(authority) {
+    const auth = this.chain.authorities[authority];
+    if (!(auth instanceof Function)) {
+      throw new Error(`Authority '${authority}' is not a function`);
+    }
+    return auth;
+  }
+
+  /**
+   * resolves an authority, whether that be a null or a function. `resolveAuthorityFunction` is suitable most of the time.
+   */
+  resolveAuthority(authority) {
+    const auth = this.chain.authorities[authority];
+    if (auth === undefined) {
+      throw new Error(`Authority '${authority}' is not defined`);
+    }
+    if (auth !== null && !(auth instanceof Function)) {
+      throw new Error(`Authority '${authority}' is neither a Function nor null`);
+    }
+    return auth;
   }
 
   /**
