@@ -135,15 +135,9 @@ class Ring {
 
     class ResolverPromiseChain extends (parent === null ? Promise : parent.ResolverPromiseChain) {}
 
-    for (const [property, func] of Object.entries(resolvers)) {
-      ResolverPromiseChain.prototype[property] = function (...args) {
-        const ring = this[PromiseChain_ring];
-        this[PromiseChain_args].push(Reflect.apply(func, ring, args));
-        return this;
-      };
-    }
-
     this.ResolverPromiseChain = ResolverPromiseChain;
+
+    this.resolvers = resolvers;
   }
 
   setResolver(resolver, func) {
