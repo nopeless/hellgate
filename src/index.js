@@ -133,32 +133,17 @@ class Ring {
     assignToPrototype(sinAuthorities, this.chain.sins, () => null);
     assignToPrototype(resolvers, this.chain.resolvers);
 
-    let cls;
-
-    if (parent === null) {
-      // Promise Resolver
-      class ResolverPromiseChain extends Promise {
-        // user(...args) {
-        //   const ring = this[PromiseChain_ring];
-        //   this[PromiseChain_args].push(ring.user(...args));
-        //   return this;
-        // }
-      }
-      cls = ResolverPromiseChain;
-    } else {
-      class ResolverPromiseChain extends parent.ResolverPromiseChain {}
-      cls = ResolverPromiseChain;
-    }
+    class ResolverPromiseChain extends (parent === null ? Promise : parent.ResolverPromiseChain) {}
 
     for (const [property, func] of Object.entries(resolvers)) {
-      cls.prototype[property] = function (...args) {
+      ResolverPromiseChain.prototype[property] = function (...args) {
         const ring = this[PromiseChain_ring];
         this[PromiseChain_args].push(Reflect.apply(func, ring, args));
         return this;
       };
     }
 
-    this.ResolverPromiseChain = cls;
+    this.ResolverPromiseChain = ResolverPromiseChain;
   }
 
   setResolver(resolver, func) {
