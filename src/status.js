@@ -13,6 +13,7 @@ function defineChain(dict, obj, key, root = null) {
   o[key] = true;
 
   if (!obj[key]) return o;
+  if (!Array.isArray(obj[key])) throw new Error(`Chain key ${key} is not an array`);
   for (const k of obj[key]) {
     for (const entry in defineChain(dict, obj, k, root)) {
       o[entry] = true;
