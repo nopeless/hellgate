@@ -1,6 +1,10 @@
 
 # THIS PROJECT IS IN BETA
 
+![ci badge](https://github.com/nopeless/hellgate/actions/workflows/ci.yaml/badge.svg)
+[![Coverage Status](https://coveralls.io/repos/github/nopeless/hellgate/badge.svg?branch=main)](https://coveralls.io/github/nopeless/hellgate?branch=main)
+![Dev badge](https://img.shields.io/badge/Beta%20stage-ff69b4)
+
 # Role based access control
 
 Hellgate is an agonistic role based access control with DENY that is easy to implement but also highly customizable.
