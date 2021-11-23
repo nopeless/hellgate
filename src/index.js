@@ -289,6 +289,82 @@ class Ring {
   // }
 
   /**
+   * Sync version of can. Cannot chain, only async will work (otherwise error)
+   */
+  canSync(userResolvable, authority) {
+    const path = this.path;
+
+    const user = this.hotel.user(userResolvable);
+
+    const { [IHotel.statusesSymbol]: statuses, [IHotel.sinsSymbol]: sins } = user;
+
+    if (!statuses || !sins) {
+      throw new Error(`Cannot check permissions without statuses or sins. User was ${user}`);
+    }
+
+    const args = [user, authority];
+
+    const statusGrantIndex = this.statusCheck(statuses, authority, path);
+
+    if (statusGrantIndex === path.length) {
+      // Attempt to bring this user up to higher rings
+      return true;
+    }
+
+    let authorityFunction;
+
+    if (authority instanceof Function) {
+      authorityFunction = authority;
+    } else {
+      // eslint-disable-next-line consistent-return
+      authorityFunction = (() => {
+        const pathReverse = [...path];
+        pathReverse.reverse();
+        for (const ring of pathReverse.slice(statusGrantIndex)) {
+          let hasGrant = false;
+
+          for (const sin of sins) {
+            let auth = ring.sinAuthorities[sin]?.[authority];
+            if (auth === undefined) continue;
+            if (auth instanceof Function) {
+              auth = Reflect.apply(auth, this, args) ?? false;
+            }
+            if (auth === false) return false;
+            if (auth === true) { hasGrant = true; continue; }
+            throw new Error(`Expected authority of sin '${sin}' to be a boolean or auth's result to be true, false, or undefined, recieved ${auth}`);
+          }
+
+          if (hasGrant) return true;
+
+          let everyone = ring.everyone[authority];
+          if (everyone === undefined) continue;
+          if (everyone instanceof Function) {
+            everyone = Reflect.apply(everyone, this, args) ?? false;
+          }
+          if (everyone === !!everyone) return everyone;
+          throw new Error(`Expected everyone authority to be a boolean or everyone's result to be true, false, or undefined, recieved ${everyone}`);
+        }
+      })();
+    }
+
+    if (authorityFunction === undefined) {
+      if (statusGrantIndex === 0) {
+        throw new Error(`INTERNAL ERROR: Authority '${authority}' was rejected via statuses,` +
+              `meaing that the resolver function should have been defined, ` +
+              `but it returned undefined meaning that something went wrong`);
+      }
+      return true;
+    }
+
+    // Simple true false resolver
+    if (authorityFunction === !!authorityFunction) {
+      return authorityFunction;
+    }
+
+    return false;
+  }
+
+  /**
    * @return {Promise}
    */
   can(userResolvable, authority, ...context) {
@@ -312,6 +388,10 @@ class Ring {
         const args = await Promise.all(promise[PromiseChain_args]);
         const user = args[0]; // just a reference to userPromise;
         const { [IHotel.statusesSymbol]: statuses, [IHotel.sinsSymbol]: sins } = user;
+
+        if (!statuses || !sins) {
+          throw new Error(`Cannot check permissions without statuses or sins. User was ${user}`);
+        }
 
         const statusGrantIndex = this.statusCheck(statuses, authority, path);
 
@@ -339,7 +419,8 @@ class Ring {
                   auth = await Reflect.apply(auth, this, args);
                 }
                 if (auth === false) return false;
-                if (auth === true) hasGrant = true;
+                if (auth === true) { hasGrant = true; continue; }
+                throw new Error(`Expected authority of sin '${sin}' to be a boolean or auth's result to be true, false, or undefined, recieved ${auth}`);
               }
 
               if (hasGrant) return true;
@@ -350,6 +431,7 @@ class Ring {
                 everyone = await Reflect.apply(everyone, this, args);
               }
               if (everyone === !!everyone) return everyone;
+              throw new Error(`Expected everyone authority to be a boolean or everyone's result to be true, false, or undefined, recieved ${everyone}`);
             }
           })();
         }
@@ -370,7 +452,7 @@ class Ring {
           return;
         }
 
-        resolve(Reflect.apply(authorityFunction, plookup, args));
+        resolve(Reflect.apply(authorityFunction, plookup, args) ?? false);
       } catch (e) {
         reject(e);
       }
