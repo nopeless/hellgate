@@ -53,7 +53,7 @@ class IHotel {
     this.loadStatusMap(statusMap);
   }
 
-  async user(user, statuses = [], sins = []) {
+  user(user, statuses = [], sins = []) {
     if (IHotel.hasDefinitions(user)) {
       return user;
     }
