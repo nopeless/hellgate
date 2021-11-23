@@ -51,7 +51,6 @@ function AttributeProcessor(attributeArray = [`*`]) {
       if (proc(user, `${action}:any`, obj)) return true;
     }
     const flatten = notate(obj).flatten();
-    console.log(flatten.value);
     // If the user has all the permissions, it would have the same amount of keys
     return (Object.keys(flatten.value).length === Object.keys(flatten.filter(attributeArray).value).length);
   }
