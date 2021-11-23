@@ -48,6 +48,9 @@ class IHotel {
   }
 
   async user(user, statuses = [], sins = []) {
+    if (IHotel.hasDefinitions(user)) {
+      return user;
+    }
     user[IHotel.statusesSymbol] = statuses;
     user[IHotel.sinsSymbol] = sins;
     return user;
@@ -95,6 +98,18 @@ class CombinedStatusSinHotel extends IHotel {
   }
 }
 
+function ProxyLookupChain(target, ...args) {
+  return new Proxy(target, {
+    // eslint-disable-next-line consistent-return
+    get(target, prop) {
+      if (target[prop] !== undefined) return target[prop];
+      for (const arg of args) {
+        const result = arg[prop];
+        if (result !== undefined) return result;
+      }
+    },
+  });
+}
 
 class Ring {
   constructor(parent = null, everyone = {}, statusAuthorities = {}, sinAuthorities = {}, resolvers = {}) {
@@ -206,10 +221,6 @@ class Ring {
     return false;
   }
 
-  async user(userResolvable) {
-    return IHotel.hasDefinitions(userResolvable) ? userResolvable : Reflect.apply(this.hotel.user, this, [userResolvable]);
-  }
-
   /**
    * Helper method to help create custom permission methods
    */
@@ -267,7 +278,7 @@ class Ring {
       throw new Error(`authority is required`);
     }
 
-    const user = this.user(userResolvable);
+    const user = this.hotel.user(userResolvable);
 
     let authorityFunction;
     if (authority instanceof Function) {
@@ -308,10 +319,6 @@ class Ring {
     return promise;
   }
 
-  proc(func, ...args) {
-    return Reflect.apply(func, this, args);
-  }
-
   get rings() {
     return this._rings;
   }
@@ -348,8 +355,8 @@ class Ring {
   }
 
   async compare(a, b) {
-    a = await this.user(a);
-    b = await this.user(b);
+    a = await this.hotel.user(a);
+    b = await this.hotel.user(b);
     a = a[IHotel.statusesSymbol];
     b = b[IHotel.statusesSymbol];
     const statuses = this.hotel.statuses;
