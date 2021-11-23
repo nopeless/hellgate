@@ -5,49 +5,95 @@
 [![Coverage Status](https://coveralls.io/repos/github/nopeless/hellgate/badge.svg?branch=main)](https://coveralls.io/github/nopeless/hellgate?branch=main)
 ![Dev badge](https://img.shields.io/badge/Beta%20stage-ff69b4)
 
-# Role based access control
+# Permission libraries revolutionized
 
-Hellgate is an agonistic role based access control with DENY that is easy to implement but also highly customizable.
+> Considering using other libraries like [accesscontrol](https://www.npmjs.com/package/accesscontrol)? Well, you can implement most core features from that library under 50 lines of code
+> If you don't like being stuck with the presets of other libraries use this one instead. Proof [github](https://github.com/nopeless/hellgate/blob/main/test/accesscontrol/main.spec.js). 
 
-The project can offer a lot of security values as all permissions must be explicitly granted for each `Ring`, and there is no wild card `root` user.
+### What complex stuff you can make using this library
+```js
+// All of the partial code in comments are examples of custom definitions
+//...
+  number(a = 0) {
+    return Number(a);
+  }
+//...
 
-> This project uses a lot of prototype chaining properties of javascript
+//...
+  canUserAndUser(user1, user2, authority) {
+    return this.proxy(this.resolveAuthorityFunction(authority), [authority]).user(user1).user(user2);
+  }
+  sum(...args) {
+    return this.proxy((...array) => {
+      return array.reduce((sum, value) => sum + value, 0);
+    }, args);
+  }
+//...
 
-There is static and dynamic control
+// ...
+  marry: async function(_, user1, user2) {
+    return await this.can(user1, `kiss`) && await this.can(user2, `kiss`);
+  },
+  hit: async function(user1, _, user2) {
+    return await this.compare(user1, user2) === 1;
+  },
+//...
 
-Which is up to you to implement
+
+// canUserAndUser is custom
+await titanic.canUserAndUser(`jack`, `rose`, `marry`);
+// permission `hit` is a 3 argument function. you can define .user behavior resolution as well, that is inherited
+await titanic.can(`jack`, `hit`).user(`rose`);
+// equivalent to
+await titanic.can(`jack`, `hit`, titanic.hotel.user(`rose`));
+
+// You can also make everything custom
+await titanic.sum().number("123").number("123"); // then 246
+
+// If you want to pass in raw arguments, no problem
+titanic.setResolver(`raw`, arg => arg);
+await titanic.sum().raw(123).number(123); // then 246
+```
+
+> Note: `accesscontrol` has far better stability and reliability, while this library has extendable/customizable everything
+
+**Hellgate** is an agonistic role based access control with DENY that is easy to implement but also highly customizable.
+
+The project can offer a lot of security value if needed when only using `statuses`, because it inherits all denies from previous `rings`
+
+It has a super customizable (I mean it)
+
+It is easy to implement dynamic permission loading, meaning that like Discord, you can create whole new instances of permission structure and operate on it
 
 There are examples as test cases, so feel free to browse the repository
 
 # Terminology
 
-| Term            | Description                                                                            | Conventional Term |
-|-----------------|----------------------------------------------------------------------------------------|-------------------|
-| Hellgate        | Root level ranks are defined here                                                      | Application       |
-| Ring            | Sub level that inherits higher rings. A ring can have multiple rings                   | Subfield          |
-| Status          | A global `Status` of a `User`                                                          | Rank, Group       |
-| StatusAuthority | Authority granted by a user's status                                                   | Rank Permission   |
-| Sin             | A `Ring` inherited property of a user. A sin only exists in the ring and its sub rings | Roles             |
-| SinAuthority    | Authority granted or denied by a `User`'s `Sins`                                       | Role Permission   |
-| Everyone        | A base authority that automatically overrides `sinAuthority`                           | Base Permission   |
+| Term             | Description                                                                            | Conventional Term |
+|------------------|----------------------------------------------------------------------------------------|-------------------|
+| Hellgate         | Root level ranks are defined here                                                      | Application       |
+| Ring             | Sub level that inherits higher rings. A ring can have multiple rings                   | Subfield          |
+| Status           | A global `Status` of a `User`                                                          | Rank, Group       |
+| Status Authority | Authority granted by a user's status                                                   | Rank Permission   |
+| Sin              | A `Ring` inherited property of a user. A sin only exists in the ring and its sub rings | Roles             |
+| Sin Authority    | Authority granted or denied by a `User`'s `Sins`                                       | Role Permission   |
+| Everyone         | A base authority that automatically overrides `sinAuthority`                           | Base Permission   |
 
 
-| Term (in code)    | Description                                               |
-|-------------------|-----------------------------------------------------------|
-| parent            | Parent entity (ring)                                      |
-| everyone          | `{ [permission]: Boolean }`                               |
-| statusAuthority   | `{ [permission]: Array[string: Authority] }`              |
-| sinAuthority      | `{ [sin]: { [permission]: Boolean} }`                     |
-| chain.sins        | `Prototype chained { [sin]: null }`                       |
-| chain.authorities | `Prototype chained { [sin]: null | Function }`            |
-| chain.resolvers   | `Prototype chained { [sin]: Function }`                   |
-| status            | Defined in Hellgate `{ [status]: Array[string: status] }` |
+| Term (in code)  | Description                                               |
+|-----------------|-----------------------------------------------------------|
+| parent          | Parent entity (ring)                                      |
+| everyone        | `{ [permission]: Boolean }`                               |
+| statusAuthority | `{ [permission]: Array[string: Authority] }`              |
+| sinAuthority    | `{ [sin]: { [permission]: Boolean} }`                     |
+| resolvers       | `Prototype chained { [sin]: Function }`                   |
+| statuses        | Defined in Hellgate `{ [status]: Array[string: status] }` |
 
 # Documentation
 
 Honestly, it is impossible to document every feature here because it is semantics orientated
 
-I heavily recommend that you have some sort of testing framework in your code base because this library is not meant to be 100% reliable (in terms of grants. Denies are 100% reliable)
+I heavily recommend that you have some sort of testing framework in your code base because this library is not meant to be 100% reliable (in terms of grants. Denies are 100% reliable in a sense that the library will attempt to resolve all undefined permissions and statuses as no-grants)
 
 Please refer to the `test/docs.spec.js` for every single bit of feature
 
@@ -57,7 +103,8 @@ They are all found in `test/lightweightExample.js` and `test/doc.spec.js`
 
 ```js
 // Lets make a hellgate
-// First, you need some sort of user store
+// First, you need some sort of user store (this itself is optional.
+// Check the accesscontrol emulation if you just want to deal with roles)
 const users = {
   bob: {
     // represents a user in school, but not a student (visitor)
@@ -93,7 +140,7 @@ const statusMap = {
 // You SHOULD override the user method
 
 // One thing to note is that "this" is NOT the hotel itself, but a ring
-// This is not a problem for lightweight users
+// This is not a problem for lightweight users, just don't use this
 // If you are a heavy user, read the below
 /**
  * `this` is a proxy that acts as a Ring, but if a property is not found, it will look for it in the nearest hotel
@@ -156,7 +203,7 @@ const school = Hellgate(db,
       // but this will do for now
       goGirlsBathroom: false,
       goBoysBathroom: false,
-      // Students can't dismiss the calss
+      // Everone can dismiss the class, except students
       dismissClass: true,
     },
     // The third argument is status authorities
@@ -181,7 +228,7 @@ const school = Hellgate(db,
       female: {
         goGirlsBathroom: true,
       },
-      // This will not work
+      // Students can't dismiss class
       student: {
         dismissClass: false,
       },
@@ -221,17 +268,35 @@ console.log(`steph? `, school.canSync(`steph`, `goBoysBathroom`));
 console.log(`thomas? `, school.canSync(`thomas`, `goBoysBathroom`));
 console.log(`obama? `, school.canSync(`obama`, `goBoysBathroom`));
 
-console.log(`CHECKING IF THEY CAN GO TO THE BOYS BATHROOM`);
-console.log(`bob? `, school.canSync(`bob`, `goBoysBathroom`));
-console.log(`steph? `, school.canSync(`steph`, `goBoysBathroom`));
-console.log(`thomas? `, school.canSync(`thomas`, `goBoysBathroom`));
-console.log(`obama? `, school.canSync(`obama`, `goBoysBathroom`));
-
 console.log(`CHECKING IF THEY CAN GO TO THE GIRLS BATHROOM`);
 console.log(`bob? `, school.canSync(`bob`, `goGirlsBathroom`));
 console.log(`steph? `, school.canSync(`steph`, `goGirlsBathroom`));
 console.log(`thomas? `, school.canSync(`thomas`, `goGirlsBathroom`));
 console.log(`obama? `, school.canSync(`obama`, `goGirlsBathroom`));
 
+```
 
+Output
+
+```
+CHECKING IF THEY CAN GO CLASS
+bob?  false
+steph?  true
+thomas?  true
+obama?  true
+CHECKING IF THEY CAN DISMISS CLASS
+bob?  true
+steph?  false
+thomas?  true
+obama?  true
+CHECKING IF THEY CAN GO TO THE BOYS BATHROOM
+bob?  true
+steph?  false
+thomas?  true
+obama?  true
+CHECKING IF THEY CAN GO TO THE GIRLS BATHROOM
+bob?  false
+steph?  true
+thomas?  false
+obama?  false
 ```

@@ -2,7 +2,8 @@
 const { Hellgate, Ring, IHotel } = require(`../src/index.js`);
 
 // Lets make a hellgate
-// First, you need some sort of user store
+// First, you need some sort of user store (this itself is optional.
+// Check the accesscontrol emulation if you just want to deal with roles)
 const users = {
   bob: {
     // represents a user in school, but not a student (visitor)
@@ -38,7 +39,7 @@ const statusMap = {
 // You SHOULD override the user method
 
 // One thing to note is that "this" is NOT the hotel itself, but a ring
-// This is not a problem for lightweight users
+// This is not a problem for lightweight users, just don't use this
 // If you are a heavy user, read the below
 /**
  * `this` is a proxy that acts as a Ring, but if a property is not found, it will look for it in the nearest hotel
@@ -101,7 +102,7 @@ const school = Hellgate(db,
       // but this will do for now
       goGirlsBathroom: false,
       goBoysBathroom: false,
-      // Students can't dismiss the calss
+      // Everone can dismiss the class, except students
       dismissClass: true,
     },
     // The third argument is status authorities
@@ -126,7 +127,7 @@ const school = Hellgate(db,
       female: {
         goGirlsBathroom: true,
       },
-      // This will not work
+      // Students can't dismiss class
       student: {
         dismissClass: false,
       },
