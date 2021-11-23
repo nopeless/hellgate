@@ -174,9 +174,13 @@ class Ring {
       this[PromiseChain_args].push(Reflect.apply(func, ring, args));
       return this;
     };
+    this._resolvers[resolver] = func;
   }
 
   set resolvers(resolvers) {
+    for (const k of Object.keys(this._resolvers)) {
+      delete this.ResolverPromiseChain.prototype[k];
+    }
     for (const [property, func] of Object.entries(resolvers)) {
       this.ResolverPromiseChain.prototype[property] = function (...args) {
         const ring = this[PromiseChain_ring];
@@ -184,6 +188,7 @@ class Ring {
         return this;
       };
     }
+    this._resolvers = resolvers;
   }
 
   get resolvers() {
