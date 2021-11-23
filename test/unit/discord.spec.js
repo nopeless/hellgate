@@ -9,7 +9,7 @@ const users = {
 const hotel = new LambdaHotel(name => {
   const user = users[name];
   if (!user) throw new Error(`user not found `, name);
-  return [user, user, []];
+  return [{ name }, user, []];
 });
 
 const hellgate = new Hellgate(hotel, new Ring(null, {
@@ -19,7 +19,7 @@ const hellgate = new Hellgate(hotel, new Ring(null, {
   ban: [`admin`],
 }));
 
-describe(`Simple 2 discord`, function () {
+describe(`Simple discord`, function () {
   it (`Should all pass`, async function() {
     // can kira send?
     await expect(hellgate.can(`kira`, `send`)).to.eventually.be.true;
