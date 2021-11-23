@@ -54,9 +54,6 @@ class IHotel {
   }
 
   user(user, statuses = [], sins = []) {
-    if (IHotel.hasDefinitions(user)) {
-      return user;
-    }
     user[IHotel.statusesSymbol] = statuses;
     user[IHotel.sinsSymbol] = sins;
     return user;
