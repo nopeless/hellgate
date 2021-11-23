@@ -76,9 +76,11 @@ const videoRing = new Ring(hellgate, {}, {}, {
 
 describe(`accesscontrol emulation`, function () {
   it(`should work`, async function () {
-    await expect(videoRing.can(`user`, `create:own`, { name: `day at zoo` })).to.eventually.be.true;
-    await expect(videoRing.can(`user`, `create:own`, { name: `day at zoo`, id: `3Cs8Zf3A` })).to.eventually.be.false;
-    await expect(videoRing.can(`admin`, `create:own`, { name: `day at zoo` })).to.eventually.be.true;
-    await expect(videoRing.can(`admin`, `create:any`, { name: `day at zoo`, id: `3Cs8Zf3A` })).to.eventually.be.true;
+    expect(videoRing.canSync(`user`, `create:own`, { name: `day at zoo` })).to.be.true;
+    expect(videoRing.canSync(`user`, `create:own`, { name: `day at zoo`, id: `3Cs8Zf3A` })).to.be.false;
+    expect(videoRing.canSync(`admin`, `create:own`, { name: `day at zoo` })).to.be.true;
+    expect(videoRing.canSync(`admin`, `create:any`, { name: `day at zoo`, id: `3Cs8Zf3A` })).to.be.true;
+    expect(videoRing.canSync(`admin`, `create:any`, { name: `day at zoo`, rating: `100` })).to.be.false;
+    expect(videoRing.canSync(`admin`, `create:any`, { name: `day at zoo`, views: `2000` })).to.be.false;
   });
 });
