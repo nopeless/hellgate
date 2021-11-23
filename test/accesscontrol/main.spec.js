@@ -8,8 +8,9 @@ const notate = Notation.create;
 
 class InheritSinViaStatusHotel extends IHotel {
   user(roleName) {
-    if (typeof roleName === `string`)
-      return super.user(Object.create(null), [], this.statuses[roleName] ?? [roleName]);
+    if (typeof roleName === `string`) {
+      return super.user(Object.create(null), [], Object.keys(this.statuses[roleName] ?? { [roleName]: true }));
+    }
     return super.user(roleName);
   }
 }
@@ -58,7 +59,6 @@ function AttributeProcessor(attributeArray = [`*`]) {
 }
 
 // Add rings
-// Add rings
 const videoRing = new Ring(hellgate, {}, {}, {
   admin: {
     'create:any': new AttributeProcessor([`*`, `!rating`, `!views`]),
@@ -78,5 +78,7 @@ describe(`accesscontrol emulation`, function () {
   it(`should work`, async function () {
     await expect(videoRing.can(`user`, `create:own`, { name: `day at zoo` })).to.eventually.be.true;
     await expect(videoRing.can(`user`, `create:own`, { name: `day at zoo`, id: `3Cs8Zf3A` })).to.eventually.be.false;
+    await expect(videoRing.can(`admin`, `create:own`, { name: `day at zoo` })).to.eventually.be.true;
+    await expect(videoRing.can(`admin`, `create:any`, { name: `day at zoo`, id: `3Cs8Zf3A` })).to.eventually.be.true;
   });
 });
