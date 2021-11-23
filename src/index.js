@@ -53,9 +53,9 @@ class IHotel {
     this.loadStatusMap(statusMap);
   }
 
-  user(user, statuses = [], sins = []) {
-    user[IHotel.statusesSymbol] = statuses;
-    user[IHotel.sinsSymbol] = sins;
+  user(user, statuses, sins) {
+    user[IHotel.statusesSymbol] ??= statuses ?? [];
+    user[IHotel.sinsSymbol] ??= sins ?? [];
     return user;
   }
 
