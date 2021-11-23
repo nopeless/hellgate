@@ -107,6 +107,8 @@ class CombinedStatusSinHotel extends IHotel {
   }
 }
 
+// Rename the top class, and also allow SinStatus. idk the naming is weird atm
+
 function ProxyLookupChain(target, ...args) {
   return new Proxy(target, {
     // eslint-disable-next-line consistent-return
