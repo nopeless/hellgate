@@ -21,6 +21,17 @@ const hellgate = new Hellgate(hotel, new Ring(null, {
 
 describe(`Simple discord`, function () {
   it (`Should all pass`, async function() {
+    // Sync
+    // can kira send?
+    expect(hellgate.canSync(`kira`, `send`)).to.be.true;
+    // can nope send?
+    expect(hellgate.canSync(`nope`, `send`)).to.be.true;
+    // can kira ban?
+    expect(hellgate.canSync(`kira`, `ban`)).to.be.false;
+    // can nope ban?
+    expect(hellgate.canSync(`nope`, `ban`)).to.be.true;
+
+    // Async
     // can kira send?
     await expect(hellgate.can(`kira`, `send`)).to.eventually.be.true;
     // can nope send?
