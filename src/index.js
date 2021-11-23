@@ -316,6 +316,7 @@ class Ring {
         if (authority instanceof Function) {
           authorityFunction = authority;
         } else {
+          // eslint-disable-next-line consistent-return
           authorityFunction = await (async () => {
             const pathReverse = [...path];
             pathReverse.reverse();
