@@ -59,13 +59,13 @@ await titanic.sum().raw(123).number(123); // then 246
 
 > Also note: If you want a reliable `RBAC`, do not use `sin` at all.
 
-**Hellgate** is an agonistic role based access control with DENY that is easy to implement but also highly customizable.
+**Hellgate** is an agonistic hierarchial role based access control with denies that is easy to implement but also highly customizable.
 
-The project can offer a lot of security value if needed when only using `statuses`, because it inherits all denies from previous `rings`
+It can be customized to function as any permission data structure with minimal code, due to how the internal library is structured.
 
-It has a super customizable (I mean it)
+The project can offer a lot of security value if needed when only using `statuses`, because it inherits all denies from previous `rings` (rbac)
 
-It is easy to implement dynamic permission loading, meaning that like Discord, you can create whole new instances of permission structure and operate on it
+It is easy to implement dynamic permission loading, meaning that like Discord, you can create whole new instances of permission structure and operate on it by loading it from a database. This is because objects provided to this library are mostly primitives (no mixed types)
 
 There are examples as test cases, so feel free to browse the repository
 
