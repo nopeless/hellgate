@@ -81,12 +81,21 @@ class LambdaHotel extends IHotel {
 
     const superuser = (...args) => super.user(...args);
 
-    this.user = async function(user) {
+    this.user = function(user) {
       if (IHotel.hasDefinitions(user)) {
         return user;
       }
-      const [user_, statuses, sins] = await Reflect.apply(func, this, [user]);
-      return superuser(user_, statuses, sins);
+      const p = Reflect.apply(func, this, [user]);
+      if (Array.isArray(p)) {
+        // Assume sync
+        const [user_, statuses, sins] = p;
+        return superuser(user_, statuses, sins);
+      }
+      // Assume promise
+      return p.then(arr => {
+        const [user_, statuses, sins] = arr;
+        return superuser(user_, statuses, sins);
+      });
     };
   }
 }
