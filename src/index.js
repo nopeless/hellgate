@@ -349,9 +349,7 @@ class Ring {
 
     if (authorityFunction === undefined) {
       if (statusGrantIndex === 0) {
-        throw new Error(`INTERNAL ERROR: Authority '${authority}' was rejected via statuses,` +
-              `meaing that the resolver function should have been defined, ` +
-              `but it returned undefined meaning that something went wrong`);
+        throw new Error(`Authority '${authority}' was not defined anywhere`);
       }
       return true;
     }
