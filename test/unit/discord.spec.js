@@ -1,5 +1,4 @@
 
-
 const { Hellgate, Ring, LambdaHotel } = REQUIRE_HELLGATE;
 
 const users = {
