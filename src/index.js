@@ -291,7 +291,7 @@ class Ring {
   /**
    * Sync version of can. Cannot chain, only async will work (otherwise error)
    */
-  canSync(userResolvable, authority) {
+  canSync(userResolvable, authority, ...context) {
     const path = this.path;
 
     const user = this.hotel.user(userResolvable);
@@ -302,7 +302,7 @@ class Ring {
       throw new Error(`Cannot check permissions without statuses or sins. User was ${user}`);
     }
 
-    const args = [user, authority];
+    const args = [user, authority, ...context];
 
     const statusGrantIndex = this.statusCheck(statuses, authority, path);
 
