@@ -87,7 +87,7 @@ There are examples as test cases, so feel free to browse the repository
 | statusAuthority | `{ [permission]: Array[string: Authority] }`              |
 | sinAuthority    | `{ [sin]: { [permission]: Boolean} }`                     |
 | resolvers       | `Prototype chained { [sin]: Function }`                   |
-| statuses        | Defined in Hellgate `{ [status]: Array[string: status] }` |
+| statuses        | Defined in `Hotel` `{ [status]: Array[string: status] }`  |
 
 # Documentation
 
