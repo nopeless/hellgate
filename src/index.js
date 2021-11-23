@@ -279,11 +279,11 @@ class Ring {
       }
       if (authorityFunction === null) {
         // true or false validation
-        return new Promise(() => {
+        return new Promise((resolve, reject) => {
           user.then(user => {
             const { [IHotel.statusesSymbol]: statuses, [IHotel.sinsSymbol]: sins } = user;
-            return this.authCheck(statuses, sins, authority);
-          });
+            resolve(this.authCheck(statuses, sins, authority));
+          }).catch(reject);
         });
       }
     }
