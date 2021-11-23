@@ -165,7 +165,9 @@ class Ring {
     this.resolvers = resolvers;
   }
 
-  // TODO proxy
+  /**
+   * deprecated
+   */
   setResolver(resolver, func) {
     this.ResolverPromiseChain.prototype[resolver] = function (...args) {
       const ring = this[PromiseChain_ring];
@@ -185,7 +187,16 @@ class Ring {
   }
 
   get resolvers() {
-    return this._resolvers;
+    return new Proxy(this._resolvers, {
+      set(target, p, val) {
+        target.ResolverPromiseChain.prototype[p] = function (...args) {
+          const ring = this[PromiseChain_ring];
+          this[PromiseChain_args].push(Reflect.apply(val, ring, args));
+          return this;
+        };
+        return true;
+      },
+    });
   }
 
   // authCheck(statuses, sins, authority) {
