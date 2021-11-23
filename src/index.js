@@ -332,8 +332,9 @@ class Ring {
       // eslint-disable-next-line consistent-return
       authorityFunction = (() => {
         const pathReverse = [...path];
+        pathReverse.splice(0, statusGrantIndex);
         pathReverse.reverse();
-        for (const ring of pathReverse.slice(statusGrantIndex)) {
+        for (const ring of pathReverse) {
           let hasGrant = false;
 
           for (const sin of sins) {
