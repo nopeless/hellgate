@@ -20,7 +20,7 @@ const hellgate = new Hellgate(hotel, new Ring(null, {
   ban: [`admin`],
 }));
 
-describe(`Simple 2`, function () {
+describe(`Simple 2 discord`, function () {
   it (`Should all pass`, async function() {
     // can kira send?
     await expect(hellgate.can(`kira`, `send`)).to.eventually.be.true;
