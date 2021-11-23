@@ -214,16 +214,21 @@ class Ring {
    * Helper method to help create custom permission methods
    */
   proxy(func, args = []) {
-    let resolve;
+    let resolve, reject;
 
-    const promise = new this.ResolverPromiseChain(r => { resolve = r; });
+    const promise = new this.ResolverPromiseChain((r, re) => { resolve = r; reject = re; });
 
     promise[PromiseChain_args] = [...args];
-    promise[PromiseChain_ring] = this;
+    const plookup = new ProxyLookupChain(this, this.hotel);
+    promise[PromiseChain_ring] = plookup;
 
     process.nextTick(async () => {
-      const args = await Promise.all(promise[PromiseChain_args]);
-      resolve(Reflect.apply(func, this, args));
+      try {
+        const args = await Promise.all(promise[PromiseChain_args]);
+        resolve(Reflect.apply(func, plookup, args));
+      } catch (e) {
+        reject(e);
+      }
     });
 
     return promise;
@@ -274,24 +279,30 @@ class Ring {
       }
       if (authorityFunction === null) {
         // true or false validation
-        // eslint-disable-next-line no-async-promise-executor
-        return new Promise(async r => {
-          const { [IHotel.statusesSymbol]: statuses, [IHotel.sinsSymbol]: sins } = await user;
-          r(this.authCheck(statuses, sins, authority));
+        return new Promise(() => {
+          user.then(user => {
+            const { [IHotel.statusesSymbol]: statuses, [IHotel.sinsSymbol]: sins } = user;
+            return this.authCheck(statuses, sins, authority);
+          });
         });
       }
     }
 
-    let resolve;
+    let resolve, reject;
 
-    const promise = new this.ResolverPromiseChain(r => { resolve = r; });
+    const promise = new this.ResolverPromiseChain((r, re) => { resolve = r; reject = re; });
 
     promise[PromiseChain_args] = [user, authority, ...context];
-    promise[PromiseChain_ring] = this;
+    const plookup = new ProxyLookupChain(this, this.hotel);
+    promise[PromiseChain_ring] = plookup;
 
     process.nextTick(async () => {
-      const args = await Promise.all(promise[PromiseChain_args]);
-      resolve(this.proc(authorityFunction, ...args));
+      try {
+        const args = await Promise.all(promise[PromiseChain_args]);
+        resolve(Reflect.apply(authorityFunction, plookup, args));
+      } catch (e) {
+        reject(e);
+      }
     });
 
     return promise;
