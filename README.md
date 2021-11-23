@@ -57,6 +57,8 @@ await titanic.sum().raw(123).number(123); // then 246
 
 > Note: `accesscontrol` has far better stability and reliability, while this library has extendable/customizable everything
 
+> Also note: If you want a reliable `RBAC`, do not use `sin` at all.
+
 **Hellgate** is an agonistic role based access control with DENY that is easy to implement but also highly customizable.
 
 The project can offer a lot of security value if needed when only using `statuses`, because it inherits all denies from previous `rings`
