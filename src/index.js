@@ -233,7 +233,7 @@ class Ring {
   statusCheck(statuses, authority, path) {
     let grantIndex = 0;
     let implicitGrantStack = 0;
-    path = path ?? this.path;
+    path ??= this.path;
     for (const ring of path) {
       const statusAuthorities = ring.statusAuthorities[authority];
       if (!statusAuthorities?.length) {
