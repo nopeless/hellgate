@@ -25,7 +25,7 @@ const users = {
 
 class MyHotel extends LambdaHotel {
   number(a = 0) {
-    return a;
+    return Number(a);
   }
 }
 
