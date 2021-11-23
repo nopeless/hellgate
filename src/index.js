@@ -76,6 +76,9 @@ class LambdaHotel extends IHotel {
     const superuser = (...args) => super.user(...args);
 
     this.user = async function(user) {
+      if (IHotel.hasDefinitions(user)) {
+        return user;
+      }
       const [user_, statuses, sins] = await Reflect.apply(func, this, [user]);
       return superuser(user_, statuses, sins);
     };
