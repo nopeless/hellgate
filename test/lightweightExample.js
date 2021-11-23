@@ -166,12 +166,6 @@ console.log(`steph? `, school.canSync(`steph`, `goBoysBathroom`));
 console.log(`thomas? `, school.canSync(`thomas`, `goBoysBathroom`));
 console.log(`obama? `, school.canSync(`obama`, `goBoysBathroom`));
 
-console.log(`CHECKING IF THEY CAN GO TO THE BOYS BATHROOM`);
-console.log(`bob? `, school.canSync(`bob`, `goBoysBathroom`));
-console.log(`steph? `, school.canSync(`steph`, `goBoysBathroom`));
-console.log(`thomas? `, school.canSync(`thomas`, `goBoysBathroom`));
-console.log(`obama? `, school.canSync(`obama`, `goBoysBathroom`));
-
 console.log(`CHECKING IF THEY CAN GO TO THE GIRLS BATHROOM`);
 console.log(`bob? `, school.canSync(`bob`, `goGirlsBathroom`));
 console.log(`steph? `, school.canSync(`steph`, `goGirlsBathroom`));
