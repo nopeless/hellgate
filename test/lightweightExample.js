@@ -1,61 +1,6 @@
 
-# THIS PROJECT IS IN BETA
+const { Hellgate, Ring, IHotel } = require(`../src/index.js`);
 
-![ci badge](https://github.com/nopeless/hellgate/actions/workflows/tests.yml/badge.svg)
-[![Coverage Status](https://coveralls.io/repos/github/nopeless/hellgate/badge.svg?branch=main)](https://coveralls.io/github/nopeless/hellgate?branch=main)
-![Dev badge](https://img.shields.io/badge/Beta%20stage-ff69b4)
-
-# Role based access control
-
-Hellgate is an agonistic role based access control with DENY that is easy to implement but also highly customizable.
-
-The project can offer a lot of security values as all permissions must be explicitly granted for each `Ring`, and there is no wild card `root` user.
-
-> This project uses a lot of prototype chaining properties of javascript
-
-There is static and dynamic control
-
-Which is up to you to implement
-
-There are examples as test cases, so feel free to browse the repository
-
-# Terminology
-
-| Term            | Description                                                                            | Conventional Term |
-|-----------------|----------------------------------------------------------------------------------------|-------------------|
-| Hellgate        | Root level ranks are defined here                                                      | Application       |
-| Ring            | Sub level that inherits higher rings. A ring can have multiple rings                   | Subfield          |
-| Status          | A global `Status` of a `User`                                                          | Rank, Group       |
-| StatusAuthority | Authority granted by a user's status                                                   | Rank Permission   |
-| Sin             | A `Ring` inherited property of a user. A sin only exists in the ring and its sub rings | Roles             |
-| SinAuthority    | Authority granted or denied by a `User`'s `Sins`                                       | Role Permission   |
-| Everyone        | A base authority that automatically overrides `sinAuthority`                           | Base Permission   |
-
-
-| Term (in code)    | Description                                               |
-|-------------------|-----------------------------------------------------------|
-| parent            | Parent entity (ring)                                      |
-| everyone          | `{ [permission]: Boolean }`                               |
-| statusAuthority   | `{ [permission]: Array[string: Authority] }`              |
-| sinAuthority      | `{ [sin]: { [permission]: Boolean} }`                     |
-| chain.sins        | `Prototype chained { [sin]: null }`                       |
-| chain.authorities | `Prototype chained { [sin]: null | Function }`            |
-| chain.resolvers   | `Prototype chained { [sin]: Function }`                   |
-| status            | Defined in Hellgate `{ [status]: Array[string: status] }` |
-
-# Documentation
-
-Honestly, it is impossible to document every feature here because it is semantics orientated
-
-I heavily recommend that you have some sort of testing framework in your code base because this library is not meant to be 100% reliable (in terms of grants. Denies are 100% reliable)
-
-Please refer to the `test/docs.spec.js` for every single bit of feature
-
-For lightweight users (and heavy weight users before reading the actual documentation for heavy code), refer to the code below
-
-They are all found in `test/lightweightExample.js` and `test/doc.spec.js`
-
-```js
 // Lets make a hellgate
 // First, you need some sort of user store
 const users = {
@@ -232,6 +177,3 @@ console.log(`bob? `, school.canSync(`bob`, `goGirlsBathroom`));
 console.log(`steph? `, school.canSync(`steph`, `goGirlsBathroom`));
 console.log(`thomas? `, school.canSync(`thomas`, `goGirlsBathroom`));
 console.log(`obama? `, school.canSync(`obama`, `goGirlsBathroom`));
-
-
-```
