@@ -202,35 +202,29 @@ class Ring {
   //   return false;
   // }
 
+  /**
+   * @return Number the grant it gives. Whenever it can grant, increment by 1
+   * 0: no grant
+   * 1: can grant ring 0
+   * 2: can grant ring 1
+   */
   statusCheck(statuses, authority, path) {
-    // statuses check
+    let grantIndex = 0;
+    let implicitGrantStack = 0;
     path = path ?? this.path;
-    const res = (() => {
-      let i = 0;
-      for (; i < path.length; i++) {
-        const ring = path[i];
-        if (ring.statusAuthorities[authority]?.length) {
-          break;
-        }
+    for (const ring of path) {
+      const statusAuthorities = ring.statusAuthorities[authority];
+      if (!statusAuthorities?.length) {
+        implicitGrantStack++;
+        continue;
       }
-      // There were no status definitions. Authority cannot be granted via status
-      if (i === path.length) return null;
-      for (; i < path.length; i++) {
-        const ring = path[i];
-        if (!ring.statusAuthorities[authority]?.length) continue;
-
-        const dict = ring.hotel.statuses;
-        const statusAuthorities = ring.statusAuthorities[authority];
-        // TODO if there are performance issues, optimize anyInChain with aggregate since there is a redundant calculation here
-        if (!anyInChain(statuses, statusAuthorities, dict)) return false;
-      }
-      return true;
-    })();
-
-    if (res === !!res || res === null) {
-      return res;
+      const dict = ring.hotel.statuses;
+      if (!anyInChain(statuses, statusAuthorities, dict)) break;
+      grantIndex++;
+      grantIndex += implicitGrantStack;
+      implicitGrantStack = 0;
     }
-    throw new Error(`Inconsistent return in resolution function`);
+    return grantIndex;
   }
 
   /**
@@ -310,6 +304,13 @@ class Ring {
         const user = args[0]; // just a reference to userPromise;
         const { [IHotel.statusesSymbol]: statuses, [IHotel.sinsSymbol]: sins } = user;
 
+        const statusGrantIndex = this.statusCheck(statuses, authority, path);
+
+        if (statusGrantIndex === path.length) {
+          // Attempt to bring this user up to higher rings
+          return void resolve(true);
+        }
+
         let authorityFunction;
 
         if (authority instanceof Function) {
@@ -318,7 +319,7 @@ class Ring {
           authorityFunction = await (async () => {
             const pathReverse = [...path];
             pathReverse.reverse();
-            for (const ring of pathReverse) {
+            for (const ring of pathReverse.slice(statusGrantIndex)) {
               let hasGrant = false;
 
               for (const sin of sins) {
@@ -340,28 +341,26 @@ class Ring {
               }
               if (everyone === !!everyone) return everyone;
             }
-            return false;
           })();
+        }
+
+        if (authorityFunction === undefined) {
+          if (statusGrantIndex === 0) {
+            return void reject(
+              new Error(`INTERNAL ERROR: Authority '${authority}' was rejected via statuses,` +
+              `meaing that the resolver function should have been defined, ` +
+              `but it returned undefined meaning that something went wrong`));
+          }
+          return void resolve(true);
         }
 
         // Simple true false resolver
         if (authorityFunction === !!authorityFunction) {
-          const baseAuthority = authorityFunction;
-          if (this.statusCheck(statuses, authority, path) === true) {
-            // If explicit true by status, grant
-            resolve(true);
-          } else {
-            resolve(baseAuthority);
-          }
+          resolve(authorityFunction);
           return;
         }
 
-        if (this.statusCheck(statuses, authority, path) === true) {
-          // If explicit true by status, grant
-          resolve(true);
-        } else {
-          resolve(Reflect.apply(authorityFunction, plookup, args));
-        }
+        resolve(Reflect.apply(authorityFunction, plookup, args));
       } catch (e) {
         reject(e);
       }
