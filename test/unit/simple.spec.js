@@ -74,7 +74,7 @@ const hellgate = new Hellgate(hotel, new ExtendedRing(null, {
 }));
 
 
-describe(`Simple permission with no fancy functions`, function() {
+describe(`Simple permission with no fancy functions titanic`, function() {
   it(`Should all pass`, async function() {
     // walking
     await expect(hellgate.can(`jack`, `walk`)).to.eventually.be.false;
