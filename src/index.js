@@ -1,10 +1,10 @@
 const { generateStatusMap, anyInChain } = require(`./status.js`);
 
-function assignToPrototype(obj, proto, v = (k => k)) {
-  for (const [key, value] of Object.entries(obj)) {
-    proto[key] = v(value);
-  }
-}
+// function assignToPrototype(obj, proto, v = (k => k)) {
+//   for (const [key, value] of Object.entries(obj)) {
+//     proto[key] = v(value);
+//   }
+// }
 
 function* iterArr(...args) {
   for (const arr of args) {
@@ -29,6 +29,12 @@ function _isHigher(a, b, map) {
 function prototypeEntries(obj) {
   if (obj === null) return [];
   return [...Object.entries(obj), ...prototypeEntries(Object.getPrototypeOf(obj))];
+}
+
+function isObject(obj) {
+  return (typeof obj === `object` &&
+    !Array.isArray(obj) &&
+    obj !== null);
 }
 
 const PromiseChain_args = Symbol(`args`);
@@ -130,26 +136,16 @@ class Ring {
 
     if (parent === null) {
       // Definition chain for root
-      this.chain = {
-        // Always defined
-        sins: Object.create(null),
-        authorities: Object.create(null),
-        resolvers: Object.create(null),
-      };
+      this._resolvers = Object.create(null);
     } else {
       parent.rings.push(this);
-      this.chain = {
-        // Always defined
-        sins: Object.create(parent.chain.sins),
-        authorities: Object.create(parent.chain.authorities),
-        resolvers: Object.create(parent.chain.authorities),
-      };
+      this._resolvers = Object.create(parent.resolvers);
     }
 
     // Prototype chains
-    assignToPrototype(everyone, this.chain.authorities, v => (v === true || v === false) ? null : v);
-    assignToPrototype(sinAuthorities, this.chain.sins, () => null);
-    assignToPrototype(resolvers, this.chain.resolvers);
+    for (const [k, v] of Object.entries(resolvers)) {
+      this._resolvers[k] = v;
+    }
 
     class ResolverPromiseChain extends (parent === null ? Promise : parent.ResolverPromiseChain) {}
 
@@ -158,6 +154,7 @@ class Ring {
     this.resolvers = resolvers;
   }
 
+  // TODO proxy
   setResolver(resolver, func) {
     this.ResolverPromiseChain.prototype[resolver] = function (...args) {
       const ring = this[PromiseChain_ring];
@@ -176,12 +173,37 @@ class Ring {
     }
   }
 
-  authCheck(statuses, sins, authority) {
+  get resolvers() {
+    return this._resolvers;
+  }
+
+  // authCheck(statuses, sins, authority) {
+
+  //   this.statusCheck(statuses, authority);
+
+  //   for (const ring of path) {
+  //     let hasGrant = false;
+
+  //     for (const sin of sins) {
+  //       const perm = ring.sinAuthorities[sin]?.[authority];
+  //       if (perm === false) return false;
+  //       if (perm === true) hasGrant = true;
+  //     }
+
+  //     if (hasGrant) return true;
+
+  //     const everyone = ring.everyone[authority];
+
+  //     if (everyone === !!everyone) return everyone;
+  //   }
+
+  //   return false;
+  // }
+
+  statusCheck(statuses, authority, path) {
     // statuses check
-
-    const path = this.path;
-
-    if ((() => {
+    path = path ?? this.path;
+    const res = (() => {
       let i = 0;
       for (; i < path.length; i++) {
         const ring = path[i];
@@ -190,7 +212,7 @@ class Ring {
         }
       }
       // There were no status definitions. Authority cannot be granted via status
-      if (i === path.length) return false;
+      if (i === path.length) return null;
       for (; i < path.length; i++) {
         const ring = path[i];
         if (!ring.statusAuthorities[authority]?.length) continue;
@@ -201,27 +223,12 @@ class Ring {
         if (!anyInChain(statuses, statusAuthorities, dict)) return false;
       }
       return true;
-    })()) {
-      return true;
+    })();
+
+    if (res === !!res || res === null) {
+      return res;
     }
-
-    for (const ring of path) {
-      let hasGrant = false;
-
-      for (const sin of sins) {
-        const perm = ring.sinAuthorities[sin]?.[authority];
-        if (perm === false) return false;
-        if (perm === true) hasGrant = true;
-      }
-
-      if (hasGrant) return true;
-
-      const everyone = ring.everyone[authority];
-
-      if (everyone === !!everyone) return everyone;
-    }
-
-    return false;
+    throw new Error(`Inconsistent return in resolution function`);
   }
 
   /**
@@ -249,29 +256,32 @@ class Ring {
   }
 
   /**
-   * resolves an authority function, throws an error when it is not.
+   * resolves an authority function of everyone
    */
   resolveAuthorityFunction(authority) {
-    const auth = this.chain.authorities[authority];
-    if (!(auth instanceof Function)) {
-      throw new Error(`Authority '${authority}' is not a function`);
+    for (const ring of this.path) {
+      const auth = ring.everyone[authority];
+      if (!(auth instanceof Function)) {
+        throw new Error(`Authority '${authority}' is not a function`);
+      }
+      return auth;
     }
-    return auth;
+    throw new Error(`Authority '${authority}' was not found`);
   }
 
-  /**
-   * resolves an authority, whether that be a null or a function. `resolveAuthorityFunction` is suitable most of the time.
-   */
-  resolveAuthority(authority) {
-    const auth = this.chain.authorities[authority];
-    if (auth === undefined) {
-      throw new Error(`Authority '${authority}' is not defined`);
-    }
-    if (auth !== null && !(auth instanceof Function)) {
-      throw new Error(`Authority '${authority}' is neither a Function nor null`);
-    }
-    return auth;
-  }
+  // /**
+  //  * resolves an authority, whether that be a null or a function. `resolveAuthorityFunction` is suitable most of the time.
+  //  */
+  // resolveAuthority(authority) {
+  //   const auth = this.chain.authorities[authority];
+  //   if (auth === undefined) {
+  //     throw new Error(`Authority '${authority}' is not defined`);
+  //   }
+  //   if (auth !== null && !(auth instanceof Function)) {
+  //     throw new Error(`Authority '${authority}' is neither a Function nor null`);
+  //   }
+  //   return auth;
+  // }
 
   /**
    * @return {Promise}
@@ -280,40 +290,76 @@ class Ring {
     if (authority === undefined) {
       throw new Error(`authority is required`);
     }
-
-    const user = this.hotel.user(userResolvable);
-
-    let authorityFunction;
-    if (authority instanceof Function) {
-      authorityFunction = authority;
-    } else {
-      authorityFunction = this.chain.authorities[authority];
-      if (authorityFunction === undefined) {
-        throw new Error(`authority '${authority}' is not defined`);
-      }
-      if (authorityFunction === null) {
-        // true or false validation
-        return new Promise((resolve, reject) => {
-          user.then(user => {
-            const { [IHotel.statusesSymbol]: statuses, [IHotel.sinsSymbol]: sins } = user;
-            resolve(this.authCheck(statuses, sins, authority));
-          }).catch(reject);
-        });
-      }
-    }
+    const path = this.path;
 
     let resolve, reject;
 
     const promise = new this.ResolverPromiseChain((r, re) => { resolve = r; reject = re; });
 
-    promise[PromiseChain_args] = [user, authority, ...context];
+    promise[PromiseChain_args] = [this.hotel.user(userResolvable), authority, ...context];
+
     const plookup = new ProxyLookupChain(this, this.hotel);
     promise[PromiseChain_ring] = plookup;
 
     process.nextTick(async () => {
       try {
+        // Instantly resolved;
         const args = await Promise.all(promise[PromiseChain_args]);
-        resolve(Reflect.apply(authorityFunction, plookup, args));
+        const user = args[0]; // just a reference to userPromise;
+        const { [IHotel.statusesSymbol]: statuses, [IHotel.sinsSymbol]: sins } = user;
+
+        let authorityFunction;
+
+        if (authority instanceof Function) {
+          authorityFunction = authority;
+        } else {
+          authorityFunction = await (async () => {
+            const pathReverse = [...path];
+            pathReverse.reverse();
+            for (const ring of pathReverse) {
+              let hasGrant = false;
+
+              for (const sin of sins) {
+                let auth = ring.sinAuthorities[sin]?.[authority];
+                if (auth === undefined) continue;
+                if (auth instanceof Function) {
+                  auth = await Reflect.apply(auth, this, args);
+                }
+                if (auth === false) return false;
+                if (auth === true) hasGrant = true;
+              }
+
+              if (hasGrant) return true;
+
+              let everyone = ring.everyone[authority];
+              if (everyone === undefined) continue;
+              if (everyone instanceof Function) {
+                everyone = await Reflect.apply(everyone, this, args);
+              }
+              if (everyone === !!everyone) return everyone;
+            }
+            return false;
+          })();
+        }
+
+        // Simple true false resolver
+        if (authorityFunction === !!authorityFunction) {
+          const baseAuthority = authorityFunction;
+          if (this.statusCheck(statuses, authority, path) === true) {
+            // If explicit true by status, grant
+            resolve(true);
+          } else {
+            resolve(baseAuthority);
+          }
+          return;
+        }
+
+        if (this.statusCheck(statuses, authority, path) === true) {
+          // If explicit true by status, grant
+          resolve(true);
+        } else {
+          resolve(Reflect.apply(authorityFunction, plookup, args));
+        }
       } catch (e) {
         reject(e);
       }
@@ -328,6 +374,10 @@ class Ring {
 
   get parent() {
     return this._parent;
+  }
+
+  set parent(_) {
+    throw new Error(`not implemented`);
   }
 
   get hotel() {
@@ -369,10 +419,13 @@ class Ring {
   }
 }
 
+// TODO: there should be an authority function for a user
+
 /**
  * Extends Ring but without the extends keyword
  */
 function Hellgate(hotel, baseRing) {
+  if (!isObject(hotel)) throw new Error(`hotel should be an Object`);
   baseRing = baseRing ?? new Ring();
   baseRing.hotel = hotel;
   const props = Object.getOwnPropertyDescriptors(Object.getPrototypeOf(hotel));
