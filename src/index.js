@@ -343,7 +343,7 @@ class Ring {
             let auth = ring.sinAuthorities[sin]?.[authority];
             if (auth === undefined) continue;
             if (auth instanceof Function) {
-              auth = Reflect.apply(auth, this, args) ?? false;
+              auth = Reflect.apply(auth, plookup, args) ?? false;
             }
             if (auth === false) return false;
             if (auth === true) { hasGrant = true; continue; }
@@ -355,7 +355,7 @@ class Ring {
           let everyone = ring.everyone[authority];
           if (everyone === undefined) continue;
           if (everyone instanceof Function) {
-            everyone = Reflect.apply(everyone, this, args) ?? false;
+            everyone = Reflect.apply(everyone, plookup, args) ?? false;
           }
           if (everyone === !!everyone) return everyone;
           throw new Error(`Expected everyone authority to be a boolean or everyone's result to be true, false, or undefined, recieved ${everyone}`);
@@ -429,7 +429,7 @@ class Ring {
                 let auth = ring.sinAuthorities[sin]?.[authority];
                 if (auth === undefined) continue;
                 if (auth instanceof Function) {
-                  auth = await Reflect.apply(auth, this, args);
+                  auth = await Reflect.apply(auth, plookup, args);
                 }
                 if (auth === false) return false;
                 if (auth === true) { hasGrant = true; continue; }
@@ -441,7 +441,7 @@ class Ring {
               let everyone = ring.everyone[authority];
               if (everyone === undefined) continue;
               if (everyone instanceof Function) {
-                everyone = await Reflect.apply(everyone, this, args);
+                everyone = await Reflect.apply(everyone, plookup, args);
               }
               if (everyone === !!everyone) return everyone;
               throw new Error(`Expected everyone authority to be a boolean or everyone's result to be true, false, or undefined, recieved ${everyone}`);
