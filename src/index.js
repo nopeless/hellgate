@@ -54,8 +54,8 @@ class IHotel {
   }
 
   user(user, statuses, sins) {
-    user[IHotel.statusesSymbol] ??= statuses ?? [];
-    user[IHotel.sinsSymbol] ??= sins ?? [];
+    user[IHotel.statusesSymbol] = statuses ?? user[IHotel.statusesSymbol] ?? [];
+    user[IHotel.sinsSymbol] = sins ?? user[IHotel.sinsSymbol] ?? [];
     return user;
   }
 
