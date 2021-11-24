@@ -530,7 +530,7 @@ class Ring {
  */
 function Hellgate(hotel, baseRing) {
   if (!isObject(hotel)) throw new Error(`hotel should be an Object`);
-  baseRing = baseRing ?? new Ring();
+  baseRing ??= new Ring();
   baseRing.hotel = hotel;
   const props = Object.getOwnPropertyDescriptors(Object.getPrototypeOf(hotel));
   delete props.constructor;
