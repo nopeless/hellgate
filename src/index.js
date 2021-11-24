@@ -324,13 +324,15 @@ class Ring {
       return true;
     }
 
-    let authorityFunction;
+    const plookup = new ProxyLookupChain(this, this.hotel);
+
+    let auth;
 
     if (authority instanceof Function) {
-      authorityFunction = authority;
+      auth = Reflect.apply(authority, plookup, arguments) ?? false;
     } else {
       // eslint-disable-next-line consistent-return
-      authorityFunction = (() => {
+      auth = (() => {
         const pathReverse = [...path];
         pathReverse.splice(0, statusGrantIndex);
         pathReverse.reverse();
@@ -359,21 +361,20 @@ class Ring {
           throw new Error(`Expected everyone authority to be a boolean or everyone's result to be true, false, or undefined, recieved ${everyone}`);
         }
       })();
-    }
 
-    if (authorityFunction === undefined) {
-      if (statusGrantIndex === 0) {
-        throw new Error(`Authority '${authority}' was not defined anywhere`);
+      if (auth === undefined) {
+        if (statusGrantIndex === 0) {
+          throw new Error(`Authority '${authority}' was not defined anywhere`);
+        }
+        return true;
       }
-      return true;
     }
 
-    // Simple true false resolver
-    if (authorityFunction === !!authorityFunction) {
-      return authorityFunction;
+    if (auth === !!auth) {
+      return auth;
     }
 
-    return false;
+    throw new Error(`Authority was not one of true, false, or undefined (as false) ${auth}`);
   }
 
   /**
@@ -412,13 +413,13 @@ class Ring {
           return void resolve(true);
         }
 
-        let authorityFunction;
+        let auth;
 
         if (authority instanceof Function) {
-          authorityFunction = authority;
+          auth = await Reflect.apply(authority, plookup, args) ?? false;
         } else {
           // eslint-disable-next-line consistent-return
-          authorityFunction = await (async () => {
+          auth = await (async () => {
             const pathReverse = [...path];
             pathReverse.reverse();
             for (const ring of pathReverse.slice(statusGrantIndex)) {
@@ -446,25 +447,23 @@ class Ring {
               throw new Error(`Expected everyone authority to be a boolean or everyone's result to be true, false, or undefined, recieved ${everyone}`);
             }
           })();
-        }
 
-        if (authorityFunction === undefined) {
-          if (statusGrantIndex === 0) {
-            return void reject(
-              new Error(`INTERNAL ERROR: Authority '${authority}' was rejected via statuses,` +
-              `meaing that the resolver function should have been defined, ` +
-              `but it returned undefined meaning that something went wrong`));
+          if (auth === undefined) {
+            if (statusGrantIndex === 0) {
+              return void reject(
+                new Error(`INTERNAL ERROR: Authority '${authority}' was rejected via statuses,` +
+                `meaing that the resolver function should have been defined, ` +
+                `but it returned undefined meaning that something went wrong`));
+            }
+            return void resolve(true);
           }
-          return void resolve(true);
         }
 
-        // Simple true false resolver
-        if (authorityFunction === !!authorityFunction) {
-          resolve(authorityFunction);
-          return;
+        if (auth === !!auth) {
+          return void resolve(auth);
         }
 
-        resolve(Reflect.apply(authorityFunction, plookup, args) ?? false);
+        reject(new Error(`Authority was not one of true, false, or undefined (as false) ${auth}`));
       } catch (e) {
         reject(e);
       }
