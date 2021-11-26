@@ -6,7 +6,7 @@ const users = {
   kira: [],
 };
 
-const hotel = new LambdaHotel(name => {
+const hotel = new LambdaHotel(function(name) {
   const user = users[name];
   if (!user) throw new Error(`user not found `, name);
   return [{ name }, user, []];
