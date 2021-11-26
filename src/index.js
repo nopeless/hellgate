@@ -307,7 +307,9 @@ class Ring {
   canSync(userResolvable, authority, ...context) {
     const path = this.path;
 
-    const user = this.hotel.user(userResolvable);
+    const plookup = new ProxyLookupChain(this, this.hotel);
+
+    const user = Reflect.apply(this.hotel.user, plookup, [userResolvable]);
 
     const { [IHotel.statusesSymbol]: statuses, [IHotel.sinsSymbol]: sins } = user;
 
@@ -323,8 +325,6 @@ class Ring {
       // Attempt to bring this user up to higher rings
       return true;
     }
-
-    const plookup = new ProxyLookupChain(this, this.hotel);
 
     let auth;
 
@@ -384,15 +384,17 @@ class Ring {
     if (authority === undefined) {
       throw new Error(`authority is required`);
     }
+
+    const plookup = new ProxyLookupChain(this, this.hotel);
+
     const path = this.path;
 
     let resolve, reject;
 
     const promise = new this.ResolverPromiseChain((r, re) => { resolve = r; reject = re; });
 
-    promise[PromiseChain_args] = [this.hotel.user(userResolvable), authority, ...context];
+    promise[PromiseChain_args] = [Reflect.apply(this.hotel.user, plookup, [userResolvable]), authority, ...context];
 
-    const plookup = new ProxyLookupChain(this, this.hotel);
     promise[PromiseChain_ring] = plookup;
 
     process.nextTick(async () => {

@@ -4,7 +4,6 @@ module.exports = {
   },
   globals: {
     expect: true,
-    should: true,
     assert: true,
     REQUIRE_HELLGATE: true,
   },
