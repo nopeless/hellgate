@@ -6,6 +6,7 @@
   "scripts": {
     "test": "mocha --config test/.mocharc.js --require test/global.js --recursive ./test/**/*.spec.js",
     "locov": "c8 --reporter=lcov npm test",
+    "test:html": "c8 --reporter=html npm run test && echo 'Opening index.html...' && (start coverage/index.html || echo 'could not open coverage/index.html')",
     "prepublish": "npm publish --dry-run"
   },
   "keywords": [
