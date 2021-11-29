@@ -163,9 +163,11 @@ class Ring {
   }
 
   set resolvers(resolvers) {
-    for (const k of Object.keys(this._resolvers)) {
+    // Clean prototype object
+    for (const k of Object.keys(this.ResolverPromiseChain.prototype)) {
       delete this.ResolverPromiseChain.prototype[k];
     }
+    // Assign resolvers
     for (const [property, func] of Object.entries(resolvers)) {
       this.ResolverPromiseChain.prototype[property] = function (...args) {
         const ring = this[PromiseChain_ring];
