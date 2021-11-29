@@ -162,18 +162,6 @@ class Ring {
     this.resolvers = resolvers;
   }
 
-  /**
-   * deprecated
-   */
-  setResolver(resolver, func) {
-    this.ResolverPromiseChain.prototype[resolver] = function (...args) {
-      const ring = this[PromiseChain_ring];
-      this[PromiseChain_args].push(Reflect.apply(func, ring, args));
-      return this;
-    };
-    this._resolvers[resolver] = func;
-  }
-
   set resolvers(resolvers) {
     for (const k of Object.keys(this._resolvers)) {
       delete this.ResolverPromiseChain.prototype[k];
@@ -189,9 +177,10 @@ class Ring {
   }
 
   get resolvers() {
+    const self = this;
     return new Proxy(this._resolvers, {
       set(target, p, val) {
-        target.ResolverPromiseChain.prototype[p] = function (...args) {
+        target[p] = self.ResolverPromiseChain.prototype[p] = function (...args) {
           const ring = this[PromiseChain_ring];
           this[PromiseChain_args].push(Reflect.apply(val, ring, args));
           return this;
@@ -538,7 +527,7 @@ function Hellgate(hotel, baseRing) {
   delete props.constructor;
   const entries = Object.entries(props).map(v => [v[0], v[1].value]);
   for (const [k, v] of iterArr(Object.entries(hotel), entries)) {
-    baseRing.setResolver(k, (...args) => Reflect.apply(v, hotel, args));
+    baseRing.resolvers[k] = (...args) => Reflect.apply(v, hotel, args);
   }
   return baseRing;
 }
