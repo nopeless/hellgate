@@ -503,7 +503,6 @@ class Ring {
     this._deleted = true;
     if (this.parent) {
       this.parent._rings = this.parent._rings.filter(v => v !== this);
-      console.log(this.parent._rings);
     }
   }
 
