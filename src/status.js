@@ -15,6 +15,7 @@ function defineChain(dict, obj, key, root = null) {
   if (!obj[key]) return o;
   if (!Array.isArray(obj[key])) throw new Error(`Chain key ${key} is not an array`);
   for (const k of obj[key]) {
+    if (k === key) throw new Error(`Chain key ${key} contains itself`);
     for (const entry in defineChain(dict, obj, k, root)) {
       o[entry] = true;
     }
