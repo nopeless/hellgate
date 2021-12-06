@@ -112,7 +112,7 @@ class UserResolve extends IHotel {
   }
   userByMoney(money) {
     if (typeof money !== `number`) {
-      return super.userByMoney(money);
+      return super.user(money);
     }
     const obj = users.find(v => v.props.balance === money);
     if (!obj) {
