@@ -110,19 +110,38 @@ class UserResolve extends IHotel {
     const rank = getRank(obj.props.balance);
     return super.user(obj, [obj.props.rank, rank]);
   }
+  userByMoney(money) {
+    if (typeof money !== `number`) {
+      return super.userByMoney(money);
+    }
+    const obj = users.find(v => v.props.balance === money);
+    if (!obj) {
+      throw new Error(`User not found`);
+    }
+    return this.user(obj);
+  }
 }
 
 const userResolve = new UserResolve();
 
 userResolve.loadStatusMap(statusMap);
 
-const mall = new Hellgate(userResolve, new Ring(null, {
+class Society extends Ring {
+  isRicherThan(user1, user2) {
+    const p = this.proxy(function (user1, user2) {
+      return user1.props.balance > user2.props.balance;
+    });
+    return p.if(user1, p.user).if(user2, p.user);
+  }
+}
+
+const mall = new Hellgate(userResolve, new Society(null, {
   enter: false,
 }, {
   enter: [`customer`],
 }));
 
-const rounge = new Ring(mall, {
+const rounge = new Society(mall, {
   order: function (user, _, food) {
     if (!food) throw new Error(`Food is not defined`);
     if (!this.canSync(user, `enter`)) return false;
@@ -137,10 +156,13 @@ const rounge = new Ring(mall, {
   },
 });
 
-class PrivateRoom extends Ring {
+class PrivateRoom extends Society {
   constructor(allowedPeople = [], ...args) {
     super(...args);
     this.allowedPeople = allowedPeople;
+  }
+  canEveryoneJoin(...users) {
+    return users.every(v => this.canSync(v, `enter`));
   }
 }
 
@@ -170,6 +192,12 @@ describe(`Main`, function() {
     expect(rounge.canSync(`maff`, `order`, `cookie`)).to.be.true;
     expect(rounge.canSync(`maff`, `order`, `diamond`)).to.be.true;
   });
+  it(`should find by money`, async function() {
+    await expect(mall.isRicherThan().userByMoney(1e10).userByMoney(1)).to.eventually.be.true;
+    await expect(mall.isRicherThan(`bj`).userByMoney(1)).to.eventually.be.true;
+    await expect(mall.isRicherThan(`maff`, `bj`)).to.eventually.be.true;
+    await expect(mall.isRicherThan(`bj`, `maff`)).to.eventually.be.false;
+  });
   describe(`Private room`, function() {
     let room;
     before(() => {
@@ -183,6 +211,9 @@ describe(`Main`, function() {
       expect(room.canSync(`bj`, `enter`)).to.be.true;
       expect(room.canSync(`rika`, `enter`)).to.be.false;
       expect(room.canSync(`null`, `enter`)).to.be.false;
+      expect(room.canEveryoneJoin(`maff`, `bj`)).to.be.true;
+      expect(room.canEveryoneJoin(`maff`, `bj`, `null`)).to.be.false;
+      expect(room.canEveryoneJoin(`null`)).to.be.false;
     });
   });
 });
