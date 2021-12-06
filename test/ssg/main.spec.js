@@ -204,6 +204,12 @@ describe(`Main`, function() {
     await expect(mall.isRicherThan(`maff`, `bj`)).to.eventually.be.true;
     await expect(mall.isRicherThan(`bj`, `maff`)).to.eventually.be.false;
   });
+  it(`should find by money`, async function() {
+    await expect(mall.isPoorerThan().user(`maff`).user(`null`)).to.eventually.be.false;
+    await expect(mall.isPoorerThan(`bj`).user(`null`)).to.eventually.be.false;
+    await expect(mall.isPoorerThan(`maff`, `bj`)).to.eventually.be.false;
+    await expect(mall.isPoorerThan(`bj`, `maff`)).to.eventually.be.true;
+  });
   describe(`Private room`, function() {
     let room;
     before(() => {
