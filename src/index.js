@@ -156,9 +156,26 @@ class Ring {
       this._resolvers[k] = v;
     }
 
-    class ResolverPromiseChain extends (parent === null ? Promise : parent.ResolverPromiseChain) {}
-
-    this.ResolverPromiseChain = ResolverPromiseChain;
+    let rpc;
+    if (parent === null) {
+      // Special resolver function
+      // Initialize once
+      class Rpc extends Promise {
+        if(...args) {
+          const func = args.pop();
+          // If all arguments are supplied
+          if (args[args.length - 1] !== undefined) {
+            Reflect.apply(func, this, args);
+          }
+          return this;
+        }
+      }
+      rpc = Rpc;
+    } else {
+      class Rpc extends parent.ResolverPromiseChain {}
+      rpc = Rpc;
+    }
+    this.ResolverPromiseChain = rpc;
 
     this.resolvers = resolvers;
   }
