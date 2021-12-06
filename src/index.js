@@ -504,6 +504,16 @@ class Ring {
     }
   }
 
+  hasStatus(user, status) {
+    const { [IHotel.statusesSymbol]: statuses } = user;
+    if (!statuses) throw new Error(`User has no statuses`);
+    const m = this.hotel.statuses;
+    for(const s of statuses) {
+      if (m[s][status]) return true;
+    }
+    return false;
+  }
+
   async compare(a, b) {
     a = await this.hotel.user(a);
     b = await this.hotel.user(b);
