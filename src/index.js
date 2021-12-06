@@ -131,6 +131,7 @@ function ProxyLookupChain(target, ...args) {
 class Ring {
   constructor(parent = null, everyone = {}, statusAuthorities = {}, sinAuthorities = {}, resolvers = {}) {
     this._parent = parent;
+    this._destroyed = false;
 
     // default authorities
     this.everyone = everyone;
@@ -498,9 +499,11 @@ class Ring {
     return res;
   }
 
-  delete() {
+  destroy() {
+    this._deleted = true;
     if (this.parent) {
       this.parent._rings = this.parent._rings.filter(v => v !== this);
+      console.log(this.parent._rings);
     }
   }
 
