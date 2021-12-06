@@ -160,8 +160,6 @@ class PrivilegeManager extends Ring {
   }
 }
 
-// console.log(statuses);
-
 const hellgate = new Hellgate(store, new PrivilegeManager(null, allDeny, statuses));
 
 // Not optimal, but can be rewritten
