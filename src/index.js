@@ -169,6 +169,21 @@ class Ring {
           }
           return this;
         }
+        /**
+         * Provides default resolvers for raw arguments. It will attempt to consume all function if arguments are not undefined
+         */
+        resolvers(args, ...funcs) {
+          const limit = funcs.length;
+
+          for (let i = 0; i < limit; i++) {
+            if (args[i] === undefined) break;
+
+            const func = funcs[i];
+            const arg = args[i];
+            Reflect.apply(func, this, [arg]);
+          }
+          return this;
+        }
       }
       rpc = Rpc;
     } else {

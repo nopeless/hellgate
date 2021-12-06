@@ -131,6 +131,12 @@ class Society extends Ring {
     const p = this.proxy(function (user1, user2) {
       return user1.props.balance > user2.props.balance;
     });
+    return p.resolvers(arguments, p.user, p.user);
+  }
+  isPoorerThan(user1, user2) {
+    const p = this.proxy(function (user1, user2) {
+      return user1.props.balance < user2.props.balance;
+    });
     return p.if(user1, p.user).if(user2, p.user);
   }
 }
