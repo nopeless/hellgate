@@ -1,6 +1,3 @@
-
-# THIS PROJECT IS IN BETA
-
 ![ci badge](https://github.com/nopeless/hellgate/actions/workflows/tests.yml/badge.svg)
 [![Coverage Status](https://coveralls.io/repos/github/nopeless/hellgate/badge.svg?branch=main)](https://coveralls.io/github/nopeless/hellgate?branch=main)
 ![Dev badge](https://img.shields.io/badge/Beta%20stage-ff69b4)
@@ -69,7 +66,9 @@ It is easy to implement dynamic permission loading, meaning that like Discord, y
 
 There are examples as test cases, so feel free to browse the repository
 
-# Terminology
+# Explanation
+
+Please refer to the `concept_explanation.md` for the difference between Hellgate and other RBAC and other implementations of access control
 
 | Term             | Description                                                                            | Conventional Term |
 |------------------|----------------------------------------------------------------------------------------|-------------------|
