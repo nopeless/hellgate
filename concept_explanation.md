@@ -8,7 +8,7 @@ This document goes over the previous implementations of Access Control Lists (AC
 
 ## Abstract
 
-Access Control (AC) has been invented, expanded, and solidified.over the past 40 years since the dawn of computer systems and applications. As companies had exponentially increasing branches of resources, whether that be data, software, or hardware, the need for access control became more and more apparent.
+Access Control (AC) has been invented, expanded, and solidified over the past 40 years since the dawn of computer systems and applications. As companies had exponentially increasing branches of resources, whether that be data, software, or hardware, the need for access control became more and more apparent.
 
 The most popular AC nowadays is RBAC with an extended deny features for complicated situations. In fact, Discord, one of the first chatting applications to include the complicated multi-role based access control of the Server's resources, made RBAC much more easier for the general public to access and interact with.
 
@@ -16,7 +16,7 @@ Implementing RBAC is very straight-forward. [NIST standard of RBAC from 1992](ht
 
 Discord has 3 layers of resource access levels (4 if including threads), and has a aggregate logic for denies (instead of the hierarchial. Read [this](https://support.discord.com/hc/en-us/articles/218449248-Permissions-Lockout) and [this](https://support.discord.com/hc/en-us/community/posts/360037170591-Server-permission-overrides) issue for more ).
 
-GitHub has many levels (teams) of permissions that only has grants. (Here are the specifics)[https://docs.github.com/en/get-started/learning-about-github/access-permissions-on-github]
+GitHub has many levels (teams) of permissions that only has grants. [Here are the specifics](https://docs.github.com/en/get-started/learning-about-github/access-permissions-on-github)
 
 Apache Shiro, a popular Apache permission library, has a similar concept of roles and permissions. In addition to RBAC, the resources can also be subdified ex) `printer:*` and `printer:print:*`
 
@@ -131,11 +131,11 @@ In addition to RBAC, HRBAC has an additional property to roles, in that roles ca
 
 This type of "possession leads to grant" mindset is actually the relation between ACL to RBAC.
 
-| Type  | Description                                                                                       |      |
-|-------|---------------------------------------------------------------------------------------------------|------|
-| ACL   | user has permissions                                                                              |      |
-| RBAC  | user can have roles that leads to multiple permissions                                            |      |
-| HRBAC | user can have roles that leads to multiple permissions, and roles can grant every permission of a | role |
+| Type  | Description                                                                                            |
+|-------|--------------------------------------------------------------------------------------------------------|
+| ACL   | user has permissions                                                                                   |
+| RBAC  | user can have roles that leads to multiple permissions                                                 |
+| HRBAC | user can have roles that leads to multiple permissions, and roles can grant every permission of a role |
 
 At this point, HRBAC can be extended even further to Entity Based Access Control (EBAC)
 
@@ -339,7 +339,7 @@ Here are the terminology used throughout Hellgate
 
 | Term             | Description                                                                            | Conventional Term |
 |------------------|----------------------------------------------------------------------------------------|-------------------|
-| Hellgate         | An entry level gate that MUST provide a resolver                                                      | Application       |
+| Hellgate         | An entry level gate that MUST provide a resolver                                       | Application       |
 | Ring             | Sub level that inherits higher rings. A ring can have multiple rings                   | Subfield          |
 | Status           | A global `Status` of a `User`                                                          | Rank, Group       |
 | Status Authority | Authority granted by a user's status                                                   | Rank Permission   |
