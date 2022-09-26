@@ -1,0 +1,8 @@
+**/*.*
+
+!LICENSE
+!package.json
+!src/index.js
+!src/status.js
+
+!test/doc.spec.js

@@ -1,0 +1,35 @@
+{
+    "compilerOptions": {
+        "types": [
+            "node",
+            "chai",
+            "mocha"
+        ],
+        "lib": [
+            "ESNext"
+        ],
+        "target": "es2022",
+        "module": "es2022",
+        "esModuleInterop": true,
+        "outDir": "./dist",
+        "resolveJsonModule": true,
+        "allowJs": true,
+        "declaration": true,
+        "declarationMap": true,
+        "moduleResolution": "node",
+        "strictNullChecks": true,
+        "strict": true,
+    },
+    "ts-node": {
+        "files": true,
+        "esm": true
+    },
+    "include": [
+        "./lib/**/*.ts",
+        "./src/**/*.ts",
+        "./test/**/*.ts",
+    ],
+    "exclude": [
+        "./node_modules",
+    ],
+}

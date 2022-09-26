@@ -1,0 +1,8 @@
+{
+    "loader": "ts-node/esm",
+    "files": "test/**/*.spec.ts",
+    "extension": [
+        "ts"
+    ],
+    "require": "test/prelude.js"
+}

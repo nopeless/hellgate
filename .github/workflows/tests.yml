@@ -1,0 +1,39 @@
+name: Unit tests & Coverage
+on: ["push", "pull_request"]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v2
+
+      - name: Set head
+        run: git remote set-head origin main
+
+      - name: Read .nvmrc
+        run: echo "##[set-output name=NVMRC;]$(cat .nvmrc)"
+        id: nvm
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ steps.nvm.outputs.NVMRC }}
+
+      - name: npm ci
+        run: npm ci
+
+      - name: run lint
+        uses: wearerequired/lint-action@v1.7.0
+        continue-on-error: true
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          eslint: true
+          auto_fix: true
+
+      - name: run locov
+        run: npm run locov
+
+      - name: Coveralls
+        uses: coverallsapp/github-action@master
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
