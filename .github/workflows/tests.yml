@@ -19,8 +19,8 @@ jobs:
         with:
           node-version: ${{ steps.nvm.outputs.NVMRC }}
 
-      - name: npm ci
-        run: npm ci
+      - name: set up dependencies
+        run: yarn install --frozen-lockfile
 
       - name: run lint
         uses: wearerequired/lint-action@v1.7.0
@@ -30,8 +30,8 @@ jobs:
           eslint: true
           auto_fix: true
 
-      - name: run locov
-        run: npm run locov
+      - name: run coverage
+        run: npm run test:coverage
 
       - name: Coveralls
         uses: coverallsapp/github-action@master

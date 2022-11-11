@@ -1,3 +1,6 @@
-import { expect } from "chai";
+import chai from "chai";
+import chaiAsPromised from "chai-as-promised";
 
-global.expect = expect;
+chai.use(chaiAsPromised);
+
+global.expect = chai.expect;

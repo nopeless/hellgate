@@ -1,118 +1,117 @@
-type MaybePromise<T> = T | Promise<T>;
+// BASIC TYPES
 
-type Unpromised<T> = T extends Promise<infer U> ? Unpromised<U> : T;
-
-type IsNever<T, Y = true, N = false> = [T] extends [never] ? Y : N;
+type Fn = (this: never, ...args: never[]) => unknown;
 
 /**
- * Options
+ * Masks the array with unknown for future intersection
  */
+type ElementAt<T extends unknown[], N> = N extends keyof T ? T[N] : unknown;
 
-type Options<
-  UP = any,
-  U = any,
-  Sin extends Record<string, any> = Record<string, any>,
-  Status = any,
-  R = any
-> = {
-  parseUser: (this: R, user: UP) => MaybePromise<U | null>;
-  getStatuses: (this: R, user: U) => MaybePromise<Status[]>;
-  getSin: (this: R, user: U) => MaybePromise<Sin>;
-};
-
-type __Options_Concrete<T> = T extends Options<
-  infer _1,
-  infer _2,
-  infer _3,
-  infer _4,
-  infer _5
->
-  ? IsNever<_1> extends true
-    ? never
-    : IsNever<_2> extends true
-    ? never
-    : IsNever<_3> extends true
-    ? never
-    : IsNever<_4> extends true
-    ? never
-    : IsNever<_5> extends true
-    ? never
-    : Options<_1, _2, _3, _4, _5>
+type U2I<U> = (U extends U ? (arg: U) => 0 : never) extends (arg: infer I) => 0
+  ? I
   : never;
 
-type __Function_isAsync<
-  T extends (...args: any[]) => any,
-  Y = true,
-  N = false
-> = T extends (...args: any[]) => Promise<any> ? Y : N;
+// For homogeneous unions, it picks the last member
+type OneOf<U> = U2I<U extends U ? (x: U) => 0 : never> extends (x: infer L) => 0
+  ? L
+  : never;
 
-type __Options_AnyAsync<
-  Opts extends Options,
-  Y = true,
-  N = false
-> = __Function_isAsync<
-  Opts[`parseUser`],
-  Y,
-  __Function_isAsync<
-    Opts[`getStatuses`],
-    Y,
-    __Function_isAsync<Opts[`getSin`], Y, N>
-  >
+type U2T<U, L = OneOf<U>> = [U] extends [never]
+  ? []
+  : [...U2T<Exclude<U, L>>, L];
+
+type IsEqual<X, Y> = (<T>() => T extends X ? true : false) extends <
+  T
+>() => T extends Y ? true : false
+  ? true
+  : false;
+
+// INTERMEDIATE TYPES
+
+type IsArray<T extends unknown[]> = IsEqual<T[0][], T>;
+
+type _IsAllNonTupleArrays<T extends unknown[][]> = T extends [
+  infer H extends unknown[],
+  ...infer R extends unknown[][]
+]
+  ? IsArray<H> extends true
+    ? _IsAllNonTupleArrays<R>
+    : false
+  : true;
+
+type _MergeNonTupleArrays<T extends unknown[][]> = T extends [
+  infer H extends unknown[],
+  ...infer R extends unknown[][]
+]
+  ? H[number] & _MergeNonTupleArrays<R>
+  : unknown;
+
+type MergeNonTupleArrays<T extends unknown[][]> = _MergeNonTupleArrays<T>[];
+
+type MergeTuples<T extends unknown[][]> = T extends []
+  ? T
+  : _IsAllNonTupleArrays<T> extends true
+  ? MergeNonTupleArrays<T>
+  : [_HeadMerge<T>, ...MergeTuples<_Reduce<T>>];
+
+type ExtractParameters<T extends readonly Fn[]> = {
+  [K in keyof T]: Parameters<T[K]>;
+} extends infer U extends unknown[][]
+  ? U extends [][]
+    ? []
+    : U
+  : never;
+
+type _HeadMerge<T extends unknown[][]> = T extends [
+  infer H extends unknown[],
+  ...infer R extends unknown[][]
+]
+  ? ElementAt<H, `0`> & _HeadMerge<R>
+  : unknown;
+
+// Will remove the array if it is empty
+type _Reduce<T extends unknown[][]> = T extends [
+  infer H extends unknown[],
+  ...infer R extends unknown[][]
+]
+  ? H extends [infer _, ...infer Rs extends unknown[]]
+    ? Rs extends []
+      ? _Reduce<R>
+      : [Rs, ..._Reduce<R>]
+    : IsArray<H> extends true
+    ? [H, ..._Reduce<R>]
+    : _Reduce<R>
+  : [];
+
+// EXPORTED TYPES
+
+export type MergeParameters<Fs extends Fn[]> = Fs extends []
+  ? []
+  : `0` extends keyof Fs
+  ? MergeTuples<ExtractParameters<Fs>>
+  : MergeTuples<
+      ExtractParameters<
+        U2T<Fs[number]> extends infer Fns extends Fn[] ? Fns : never
+      >
+    >;
+
+// MERGE
+
+type OptionalPropertyNames<T> = {
+  [K in keyof T]-?: {} extends { [P in K]: T[K] } ? K : never;
+}[keyof T];
+
+type SpreadProperties<L, R, K extends keyof L & keyof R> = {
+  [P in K]: L[P] | R[P];
+};
+
+type Id<T> = T extends infer U ? { [K in keyof U]: U[K] } : never;
+
+type Merge<L, R> = Id<
+  Pick<L, Exclude<keyof L, keyof R>> &
+    Pick<R, Exclude<keyof R, OptionalPropertyNames<R>>> &
+    Pick<R, Exclude<OptionalPropertyNames<R>, keyof L>> &
+    SpreadProperties<L, R, OptionalPropertyNames<R> & keyof L>
 >;
 
-type __Options_UserParsable<T> = T extends Options<infer R> ? R : never;
-type __Options_User<T> = T extends Options<any, infer R> ? R : never;
-type __Options_Sin<T> = T extends Options<any, any, infer R> ? R : never;
-type __Options_Status<T> = T extends Options<any, any, any, infer R>
-  ? R
-  : never;
-
-/**
- * Permissions
- */
-
-type __PermissionResolverFunctionObject = {
-  // I'm not sure what setting it to false will do atm
-  // So for now it stays only true or undefined
-  override?: true;
-};
-
-type PermissionResolverFunction<
-  Ring = any,
-  U = any
-> = __PermissionResolverFunctionObject &
-  ((
-    this: Ring,
-    user?: U,
-    ...args: any[]
-  ) => MaybePromise<boolean | undefined | null>);
-
-type __PermissionResolverFunction_getRestArgs<
-  F extends PermissionResolverFunction
-> = F extends (this: any, user: any, ...args: infer R) => any ? R : never;
-
-type PermissionResolver<Ring = any, U = any> =
-  | boolean
-  | PermissionResolverFunction<Ring, U>;
-
-type Permissions<Ring = any, U = any> = {
-  [key: string]: PermissionResolver<Ring, U>;
-};
-
-type __Permissions_Concrete<T> = T extends Permissions<infer _1, infer _2>
-  ? Permissions<_1, _2>
-  : never;
-
-/**
- * If P's S is not a concrete return, return the no boolean counter part (exclude)
- */
-type __Permissions_isPermissionAsync<
-  P extends Permissions,
-  S extends keyof P,
-  Y = true,
-  N = false
-> = IsNever<
-  Exclude<P[S], boolean>,
-  N,
-  __Function_isAsync<Exclude<P[S], boolean>, Y, N>
->;
+export { Merge };

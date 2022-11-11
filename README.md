@@ -4,6 +4,4 @@
 
 # Permission libraries revolutionized
 
-> Considering using other libraries like [accesscontrol](https://www.npmjs.com/package/accesscontrol)? Well, you can implement most core features from that library under 50 lines of code
-> If you don't like being stuck with the presets of other libraries use this one instead. Proof [github](https://github.com/nopeless/hellgate/blob/main/test/accesscontrol/main.spec.js). 
-
+In beta

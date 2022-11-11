@@ -5,6 +5,7 @@
 
 # Dev files
 ?.*
+archive
 
 # Logs
 logs

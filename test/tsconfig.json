@@ -1,0 +1,14 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "types": [
+      "chai",
+      "chai-as-promised",
+      "mocha",
+      "node",
+    ]
+  },
+  "include": [
+    "**/*.ts",
+  ]
+}

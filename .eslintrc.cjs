@@ -25,13 +25,7 @@ module.exports = {
     "security/detect-object-injection": `off`,
     "import-quotes/import-quotes": [`error`, `double`],
 
-    "import/extensions": [
-      `error`,
-      `ignorePackages`,
-      {
-        js: `always`,
-      },
-    ],
+    "import/extensions": [`error`, `never`],
 
     "array-callback-return": [
       `error`,
@@ -82,6 +76,7 @@ module.exports = {
     ],
 
     "@typescript-eslint/no-explicit-any": `off`,
+    "@typescript-eslint/ban-ts-comment": `off`,
     "@typescript-eslint/ban-types": [
       `warn`,
       {
