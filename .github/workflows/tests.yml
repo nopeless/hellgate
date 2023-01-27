@@ -31,7 +31,7 @@ jobs:
           auto_fix: true
 
       - name: run coverage
-        run: npm run test:coverage
+        run: npm run locov
 
       - name: Coveralls
         uses: coverallsapp/github-action@master
