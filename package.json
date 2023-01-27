@@ -10,7 +10,7 @@
     "build": "rimraf dist && tsc",
     "lint": "eslint src test --ext ts --fix",
     "locov": "c8 --reporter=lcov npm test",
-    "test:html": "c8 --reporter=html npm run test && echo 'Opening index.html...' && (start coverage/index.html || echo 'could not open coverage/index.html')",
+    "test:html": "c8 --reporter=html npm run test && echo 'Opening index.html...' && (start coverage/index.html || echo 'could not open coverage/index.html')"
   },
   "keywords": [
     "rbac",
@@ -46,12 +46,9 @@
     "mocha": "^10.0.0",
     "prettier": "^2.7.1",
     "rimraf": "^4.1.2",
-    "tsafe": "^1.0.1",
-    "tsx": "^3.12.2"
+    "tsafe": "1.2.1",
+    "tsx": "^3.12.2",
+    "typescript": "^4.9.4"
   },
-  "dependencies": {
-    "cross-env": "^7.0.3",
-    "dotenv": "^16.0.1",
-    "typescript": "^4.9.3"
-  }
+  "dependencies": {}
 }
