@@ -3,6 +3,7 @@
   "version": "1.0.0-alpha",
   "description": "An agonistic access control library with great flexibility",
   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "type": "module",
   "scripts": {
     "test": "mocha",
