@@ -1,5 +1,5 @@
 import { defineAbilities } from "@src/lib";
-import { Hellgate } from "@src";
+import { Hellgate } from "hellgate";
 import { MockDatabase } from "./fixtures";
 import { assert } from "tsafe";
 
@@ -44,6 +44,10 @@ describe(`ability`, function () {
     const hellgate = new Hellgate(
       {
         getUser: db.getUserSync,
+        getSin(u) {
+          assert<typeof u.id extends number ? true : false>;
+          return {};
+        },
       },
       u.compile()
     );

@@ -1,5 +1,5 @@
 import { assert } from "tsafe";
-import { Hellgate, Ring } from "@src";
+import { Hellgate, Ring } from "hellgate";
 import { cartesian, MockDatabase } from "./fixtures";
 import { isPromise } from "util/types";
 
@@ -78,6 +78,7 @@ describe(`Hellgate`, function () {
       {
         getUser: db.getUser,
         getSin(u) {
+          assert<typeof u.cute extends boolean | undefined ? true : false>;
           return {
             cuteCoder: !!(u.cute && u.js),
           };

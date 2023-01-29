@@ -1,5 +1,5 @@
 import { assert, is } from "tsafe";
-import { Hellgate, Underworld } from "@src";
+import { Hellgate, Underworld } from "hellgate";
 import { MockDatabase } from "./fixtures";
 import { addRoleSystem } from "@src/lib";
 

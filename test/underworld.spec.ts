@@ -4,7 +4,7 @@ import {
   MissingKeyDefinitionFault,
   TypeFault,
   Underworld,
-} from "@src";
+} from "hellgate";
 
 describe(`Underworld`, function () {
   it(`basic usage`, function () {

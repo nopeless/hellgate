@@ -8,11 +8,7 @@ class MockDatabase<U extends Record<string, unknown>> {
   }
 
   public get getUser() {
-    return (key: U | string | null): MaybePromise<U | null> => {
-      if (key === null) {
-        return null;
-      }
-
+    return (key: U | string): MaybePromise<U | null> => {
       if (typeof key === `string`) {
         return this.get(key);
       }

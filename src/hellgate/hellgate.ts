@@ -206,7 +206,7 @@ interface IRing<User extends Record<string, unknown>, UserResolvable = never> {
   ): InquiryResult;
   damn(damned: Record<string, unknown> | null): Record<string, unknown>;
   summon(damned: User): Record<string, unknown>;
-  getUser(user: UserResolvable | User | null): MaybePromise<User | null>;
+  getUser(user: UserResolvable): MaybePromise<User | null>;
   exists(action: string): boolean;
   can(
     user: User | null,
@@ -220,7 +220,7 @@ type HellgateOptions<
   UserResolvable,
   Sin extends Record<string, unknown>
 > = {
-  getUser(user: UserResolvable): MaybePromise<User | null>;
+  getUser(user: UserResolvable | User): MaybePromise<User | null>;
   getSin?(user: User): Sin;
   damn?(user: User, sin: Record<string, unknown>): Merge<User, Sin>;
   final?: boolean;
@@ -232,6 +232,7 @@ type RingOptions<
 > = {
   getSin?(damned: User): Sin;
   final?: boolean;
+  override?: boolean;
 };
 
 class Hellgate<
@@ -282,7 +283,7 @@ class Hellgate<
     ? MaybePromise<Awaited<AggregatePermissions<this, K>>>
     : AggregatePermissions<this, K>;
   public can(
-    user: P0<OptionsLiteral[`getUser`]> | null,
+    user: P0<OptionsLiteral[`getUser`]>,
     action: string,
     ...meta: any
   ): MaybePromise<boolean | undefined> {
@@ -435,11 +436,13 @@ class Ring<
     ? MaybePromise<Awaited<AggregatePermissions<this, K>>>
     : AggregatePermissions<this, K>;
   public can(
-    user: P0<Parent[`getUser`]> | null,
+    user: P0<Parent[`getUser`]>,
     action: string,
     ...meta: any
   ): MaybePromise<boolean | undefined> {
-    const u = this.parent.getUser(user);
+    const u = this.parent.getUser(user) as MaybePromise<
+      Parent[`__TYPE_User`] | null
+    >;
     if (isPromise(u)) {
       return u.then((u) => this.inquire(u, action, ...meta).value());
     }
@@ -474,7 +477,7 @@ class Ring<
     let final: boolean | undefined;
 
     if (typeof permission === `function`) {
-      override = permission.override;
+      override = permission.override ?? this.options.override;
       final = permission.final ?? this.options.final;
       if (`value` in permission) {
         value = wrap(permission.value);
