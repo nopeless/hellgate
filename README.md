@@ -4,4 +4,4 @@
 
 # Permission libraries revolutionized
 
-In beta
+Read `examples/` for now. I also need some reviewers for feedback. Submit an issue if you want to help me
