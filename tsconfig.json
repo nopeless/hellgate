@@ -4,7 +4,7 @@
       "node",
     ],
     "lib": [
-      "ESNext",
+      // "ESNext",
     ],
     "target": "es2022",
     "module": "es2022",
@@ -18,6 +18,9 @@
     "strictNullChecks": true,
     "strict": true,
     "paths": {
+      "@src/*": [
+        "./src/*"
+      ],
       "@src": [
         "./src"
       ]

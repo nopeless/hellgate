@@ -50,20 +50,10 @@ class MissingKeyDefinitionFault extends GraphFault {
   }
 }
 
-/**
- * Will allow lower ranks to inherit higher ranks if ignored
- */
-class NonhierarchialFault extends GraphFault {
-  constructor(public readonly lower: string, public readonly higher: string) {
-    super(`Nonhierarchial error: '${lower}' attempted to inherit '${higher}'`);
-  }
-}
-
 export {
   GraphError,
   GraphFault,
   CircularReferenceFault,
   TypeFault,
   MissingKeyDefinitionFault,
-  NonhierarchialFault,
 };

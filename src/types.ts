@@ -48,25 +48,36 @@ type _MergeNonTupleArrays<T extends unknown[][]> = T extends [
 
 type MergeNonTupleArrays<T extends unknown[][]> = _MergeNonTupleArrays<T>[];
 
-type MergeTuples<T extends unknown[][]> = T extends []
-  ? T
-  : _IsAllNonTupleArrays<T> extends true
-  ? MergeNonTupleArrays<T>
-  : [_HeadMerge<T>, ...MergeTuples<_Reduce<T>>];
+type FilterEmptyArrays<T extends unknown[][]> = T extends [
+  infer H extends unknown[],
+  ...infer R extends unknown[][]
+]
+  ? H extends []
+    ? FilterEmptyArrays<R>
+    : [H, ...FilterEmptyArrays<R>]
+  : [];
+
+type MergeTuples<Arr extends unknown[][]> =
+  FilterEmptyArrays<Arr> extends infer T extends unknown[][]
+    ? T extends []
+      ? T
+      : _IsAllNonTupleArrays<T> extends true
+      ? MergeNonTupleArrays<T>
+      : [_HeadMerge<T>, ...MergeTuples<_Reduce<T>>]
+    : never;
 
 type ExtractParameters<T extends readonly Fn[]> = {
   [K in keyof T]: Parameters<T[K]>;
 } extends infer U extends unknown[][]
-  ? U extends [][]
-    ? []
-    : U
+  ? U
   : never;
 
 type _HeadMerge<T extends unknown[][]> = T extends [
   infer H extends unknown[],
   ...infer R extends unknown[][]
 ]
-  ? ElementAt<H, `0`> & _HeadMerge<R>
+  ? // using element at is safer than using H[0]
+    ElementAt<H, `0`> & _HeadMerge<R>
   : unknown;
 
 // Will remove the array if it is empty

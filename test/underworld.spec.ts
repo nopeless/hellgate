@@ -43,6 +43,7 @@ describe(`Underworld`, function () {
       c: [],
       d: [`a`, `c`],
     });
+
     // User shouldn't be able to push
     // But lets say they did
     // @ts-expect-error
@@ -81,7 +82,15 @@ c: [c, e]
 d: [d, a, c, e]`);
 
     // @ts-expect-error
-    underworld.update({ a: [`a`] });
+    underworld.update({ a: [`a`, `a`] });
     expect(underworld.faults[0] instanceof CircularReferenceFault);
+    expect(underworld.dump()).to.deep.equal({ a: [`a`] });
+
+    underworld.update({ a: [`c`], b: [`c`], c: [`d`], d: [] });
+
+    expect(underworld.faults).to.be.empty;
+    expect(underworld.compareStatuses(`a`, `b`)).to.equal(0);
+    expect(underworld.compareStatuses(`a`, `c`)).to.equal(1);
+    expect(underworld.compareStatuses(`d`, `a`)).to.equal(-1);
   });
 });

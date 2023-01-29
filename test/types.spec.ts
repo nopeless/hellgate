@@ -1,5 +1,6 @@
 import { assert, Equals } from "tsafe";
-import { MergeParameters } from "../src";
+import type { MergeParameters } from "../src";
+import type { MetaFunction, PermissionFunction } from "@src/hellgate";
 
 type f1 = () => number;
 type f2 = (a: number | string) => string;
@@ -27,5 +28,14 @@ describe(`types`, () => {
       >
     >();
     assert<Equals<MergeParameters<[f5]>, [unknown, unknown, ...number[]]>>();
+
+    type mf1 = MetaFunction<() => boolean>;
+    assert<Equals<mf1, () => unknown>>();
+
+    type mf2 = MetaFunction<PermissionFunction<never, never, unknown[]>>;
+    type c1 = MergeParameters<[mf2]>;
+    assert<Equals<c1, unknown[]>>();
+    type mp1 = MergeParameters<[mf1, mf2]>;
+    assert<Equals<mp1, unknown[]>>();
   });
 });

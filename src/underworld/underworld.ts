@@ -4,8 +4,26 @@ import {
   CircularReferenceFault,
   TypeFault,
   MissingKeyDefinitionFault,
-  NonhierarchialFault,
 } from "./faults";
+
+function objectExtends(a: Record<string, true>, b: Record<string, true>) {
+  for (const key in b) {
+    if (key in a === false) {
+      return 0;
+    }
+  }
+  return 1;
+}
+
+function mergeObjects(objects: Record<string, true>[]) {
+  const o: Record<string, true> = Object.create(null);
+  for (const object of objects) {
+    for (const key in object) {
+      o[key] = true;
+    }
+  }
+  return o;
+}
 
 function _defineChild(
   graph: Record<string, readonly string[]>,
@@ -82,23 +100,23 @@ type Options = {
   strict?: boolean;
 };
 
-function verifyDirectedGraphIsStrictHierarchial(
-  graph: Record<string, Record<string, true>>
-) {
-  const higher: Record<string, true> = Object.create(null);
-  const faults = [];
+// function verifyDirectedGraphIsStrictHierarchial(
+//   graph: Record<string, Record<string, true>>
+// ) {
+//   const higher: Record<string, true> = Object.create(null);
+//   const faults = [];
 
-  for (const [k, o] of Object.entries(graph)) {
-    higher[k] = true;
-    for (const v of Object.keys(o)) {
-      if (higher[v]) {
-        faults.push(new NonhierarchialFault(k, v));
-      }
-    }
-  }
+//   for (const [k, o] of Object.entries(graph)) {
+//     higher[k] = true;
+//     for (const v of Object.keys(o)) {
+//       if (higher[v]) {
+//         faults.push(new NonHierarchialFault(k, v));
+//       }
+//     }
+//   }
 
-  return faults;
-}
+//   return faults;
+// }
 
 type Valid<O extends Record<string, readonly string[]>> =
   O[keyof O][number] extends infer U extends string
@@ -151,14 +169,27 @@ class Underworld<O extends Record<string, readonly string[]>> {
       this._graphInternal = value;
       this._faults = faults;
       this._dirty = false;
-      return [...faults, ...verifyDirectedGraphIsStrictHierarchial(value)];
+      return [...faults];
     }
     return this._faults;
   }
 
-  public static verify(graph: Record<string, readonly string[]>) {
-    const { faults, value } = defineDirectedGraph(graph);
-    return [...faults, ...verifyDirectedGraphIsStrictHierarchial(value)];
+  public getValidStatusesFrom(statuses: string[]): (keyof Valid<O> & string)[] {
+    return statuses.filter((s) =>
+      Object.keys(this._graphInternal).includes(s)
+    ) as string[];
+  }
+
+  public verify() {
+    // TODO
+  }
+
+  public static verify(
+    graph: Record<string, readonly string[]>,
+    errors: [] = []
+  ) {
+    const { faults } = defineDirectedGraph(graph);
+    return [...faults];
   }
 
   /**
@@ -170,10 +201,17 @@ class Underworld<O extends Record<string, readonly string[]>> {
     return this.faults;
   }
 
-  public statusesOf(key: keyof O & string): (keyof O & string)[] {
+  public statusesOf(
+    keys: (keyof O & string)[] | (keyof O & string)
+  ): (keyof O & string)[] {
+    if (typeof keys === `string`) {
+      keys = [keys];
+    }
     // The below, casting is needed as the type system thinks that
     // Object can have other keys. If this happens, its the user's fault
-    return Object.keys(this._graphInternal[key]) as (keyof O & string)[];
+    return Object.keys(
+      mergeObjects(keys.map((key) => this._graphInternal[key]))
+    );
   }
 
   /**
@@ -209,12 +247,47 @@ class Underworld<O extends Record<string, readonly string[]>> {
     }
   }
 
+  /**
+   * Compare two array of statuses
+   * ```
+   * 1: a > b
+   * -1: a < b
+   * 0: a === b or a and b are not related
+   * ```
+   */
+  public compareStatuses(
+    ar: readonly (keyof O & string)[] | (keyof O & string),
+    br: readonly (keyof O & string)[] | (keyof O & string)
+  ) {
+    if (typeof ar === `string`) ar = [ar];
+    if (typeof br === `string`) br = [br];
+    const a = mergeObjects(ar.map((k) => this._graphInternal[k]));
+    const b = mergeObjects(br.map((k) => this._graphInternal[k]));
+    return objectExtends(a, b) - objectExtends(b, a);
+  }
+
   public formattedGraph() {
-    return Object.entries<typeof this._graphInternal[keyof O & string]>(
+    return Object.entries<(typeof this._graphInternal)[keyof O & string]>(
       this._graphInternal
     )
       .map(([k, v]) => `${k}: [${Object.keys(v).join(`, `)}]`)
       .join(`\n`);
+  }
+
+  /**
+   * Returns a clean version of the graph
+   *
+   * No duplicate keys, guaranteed to be a valid graph (if strict mode)
+   */
+  public dump() {
+    const graph: Record<string, string[]> = Object.create(null);
+
+    for (const key in this._graphInternal) {
+      graph[key] = Object.keys(this._graphInternal[key]);
+    }
+
+    // This should be safe enough
+    return graph as unknown as Valid<O>;
   }
 }
 

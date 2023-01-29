@@ -1,6 +1,7 @@
 /**
  * Hellgate 16
  */
+import assert from "node:assert";
 import { isPromise } from "util/types";
 import { Merge, MergeParameters } from "../types";
 
@@ -20,6 +21,10 @@ function wrap(
     return () => v;
   }
   return v;
+}
+
+function isObject(v: unknown): v is object {
+  return Object(v) === v;
 }
 
 function then(
@@ -44,7 +49,7 @@ type InquiryResult = {
   final?: boolean | undefined;
 };
 
-type PermissionFunctionProperties = {
+type PermissionFunctionProperties<V extends boolean | undefined> = {
   /** Function properties
    * Override can overturn a parent's decision
    */
@@ -60,7 +65,7 @@ type PermissionFunctionProperties = {
    *
    * Used to mark final booleans
    */
-  value?: boolean | undefined;
+  value?: V;
 };
 
 type PermissionFunction<
@@ -73,7 +78,7 @@ type PermissionFunction<
   action: string,
   ...meta: Meta
 ) => MaybePromise<boolean | undefined>) &
-  PermissionFunctionProperties;
+  PermissionFunctionProperties<boolean | undefined>;
 
 // Mapper function
 type _PermissionsAddFunctionProperties<Perms extends Permissions> = [
@@ -81,8 +86,10 @@ type _PermissionsAddFunctionProperties<Perms extends Permissions> = [
 ] extends [never]
   ? Perms
   : {
-      [K in keyof Perms]: Perms[K] extends Fn
-        ? Perms[K] & PermissionFunctionProperties
+      [K in keyof Perms]: Perms[K] extends ((
+        ...args: never[]
+      ) => infer R extends MaybePromise<boolean | undefined>)
+        ? Perms[K] & PermissionFunctionProperties<Awaited<R>>
         : // Ideally the below this should never happen
           Perms[K];
     };
@@ -182,15 +189,15 @@ type MetaParameters<
   A extends string
 > = MergeParameters<ArrayOfPermissionFunctions<R, A>>;
 
-interface IRing<User extends Record<string, unknown>> {
-  parent: IRing<User> | null;
+interface IRing<User extends Record<string, unknown>, UserResolvable = never> {
+  parent: IRing<User, UserResolvable> | null;
   __TYPE_Real: boolean;
   __TYPE_User: User;
-  __TYPE_getUser: (u: never) => MaybePromise<User | null>;
+  __TYPE_UserResolvable: (user: UserResolvable) => unknown;
   __TYPE_Damned: Record<string, unknown>;
   permissions: Permissions;
   inquire(
-    user: User | null,
+    user: UserResolvable | User | null,
     // action should always be at least a string
     // overloaded later
     action: string,
@@ -198,7 +205,8 @@ interface IRing<User extends Record<string, unknown>> {
     ...meta: any
   ): InquiryResult;
   damn(damned: Record<string, unknown> | null): Record<string, unknown>;
-  getUser(user: User | null): MaybePromise<Record<string, unknown> | null>;
+  summon(damned: User): Record<string, unknown>;
+  getUser(user: UserResolvable | User | null): MaybePromise<User | null>;
   exists(action: string): boolean;
   can(
     user: User | null,
@@ -230,17 +238,17 @@ class Hellgate<
   OptionsLiteral extends HellgateOptions<User, any, Sin>,
   User extends Record<string, unknown>,
   UserResolvable,
-  Sin extends Record<string, unknown>,
-  Perms extends Permissions<IRing<User>, Merge<User, Sin>> = Permissions<
-    IRing<User>,
+  Sin extends Record<string, unknown> = {},
+  Perms extends Permissions<
+    IRing<User, UserResolvable>,
     Merge<User, Sin>
-  >
-> implements IRing<User>
+  > = Permissions<IRing<User, UserResolvable>, Merge<User, Sin>>
+> implements IRing<User, UserResolvable>
 {
   __TYPE_Real!: true;
   __TYPE_User!: User;
-  __TYPE_getUser!: OptionsLiteral[`getUser`];
   __TYPE_Damned!: Merge<User, Sin>;
+  __TYPE_UserResolvable!: (user: UserResolvable) => unknown;
 
   get parent() {
     return null;
@@ -248,7 +256,7 @@ class Hellgate<
 
   constructor(
     public options: OptionsLiteral & HellgateOptions<User, UserResolvable, Sin>,
-    public permissions: _PermissionsAddFunctionProperties<Perms>
+    public permissions: _PermissionsAddFunctionProperties<Perms> = {} as _PermissionsAddFunctionProperties<Perms>
   ) {
     //
   }
@@ -257,10 +265,6 @@ class Hellgate<
     action: K
   ): action is K & keyof this[`permissions`] {
     return action in this.permissions;
-  }
-
-  public get w(): OptionsLiteral[`getUser`] {
-    return (this.options as OptionsLiteral).getUser;
   }
 
   public can<K extends AggregatePermissionKeys<this>>(
@@ -294,7 +298,7 @@ class Hellgate<
     action: string,
     ...meta: any
   ): InquiryResult {
-    const user = this.damn(cleanUser);
+    const user = cleanUser === null ? null : this.damn(cleanUser);
 
     if (action in this.permissions === false) {
       // Permission does not exist
@@ -318,6 +322,7 @@ class Hellgate<
     } else {
       value = () => permission;
     }
+
     return {
       damned: user,
       value,
@@ -325,18 +330,45 @@ class Hellgate<
       final,
     };
   }
-  public damn(user: User | null): Merge<User, Sin> {
-    if (user === null) {
-      return {} as Merge<User, Sin>;
-    }
-
+  public damn(user: User): Merge<User, Sin> {
     const sin = this.options.getSin?.(user) ?? ({} as Sin);
 
-    return { ...user, ...sin } as Record<string, unknown> as Merge<User, Sin>;
+    const u: typeof user = { ...user };
+
+    Object.assign(u, sin);
+
+    return u as Record<string, unknown> as Merge<User, Sin>;
   }
 
-  public get getUser() {
-    return this.options.getUser;
+  public get getUser(): OptionsLiteral[`getUser`] {
+    return (u: User) => {
+      const r = this.options.getUser(u);
+
+      if (isPromise(r)) {
+        return r.then((v) => {
+          // Assert that it is object
+          assert(
+            v === null || isObject(v),
+            `Hellgate.getUser must return a MaybePromise<User | null>. Return resolved to ${v}`
+          );
+
+          return v;
+        });
+      }
+
+      assert(
+        r === null || isObject(r),
+        `Hellgate.getUser must return a MaybePromise<User | null>. Returned ${r}`
+      );
+      return r;
+    };
+  }
+
+  /**
+   * Summons a user to the current location
+   */
+  public summon(user: User) {
+    return this.damn(user);
   }
 }
 
@@ -345,22 +377,23 @@ class Ring<
   Parent extends IRing<any>,
   Sin extends Record<string, unknown> = {},
   Perms extends Permissions<
-    IRing<Parent[`__TYPE_User`]>,
+    IRing<Parent[`__TYPE_User`], P0<Parent[`__TYPE_UserResolvable`]>>,
     Merge<Parent[`__TYPE_Damned`], Sin>
   > = PermissionsWide<
-    IRing<Parent[`__TYPE_User`]>,
+    IRing<Parent[`__TYPE_User`], P0<Parent[`__TYPE_UserResolvable`]>>,
     Merge<Parent[`__TYPE_Damned`], Sin>
   >
-> implements IRing<Parent[`__TYPE_User`]>
+> implements IRing<Parent[`__TYPE_User`], P0<Parent[`__TYPE_UserResolvable`]>>
 {
   __TYPE_Real!: true;
   __TYPE_User!: Parent[`__TYPE_User`];
-  __TYPE_getUser!: Parent[`__TYPE_getUser`];
   __TYPE_Damned!: Merge<Parent[`__TYPE_Damned`], Sin>;
+  __TYPE_UserResolvable!: Parent[`__TYPE_UserResolvable`];
 
   constructor(
     public parent: Parent,
     public options: RingOptions<Parent[`__TYPE_Damned`], Sin> = {},
+    // Desirable type inference behavior for permissions
     public permissions: _PermissionsAddFunctionProperties<Perms> = {} as _PermissionsAddFunctionProperties<Perms>
   ) {
     //
@@ -377,14 +410,13 @@ class Ring<
   }
 
   public damn(
-    damned: Record<string, unknown> | null
+    damned: Record<string, unknown>
   ): Merge<Parent[`__TYPE_Damned`], Sin> {
-    if (damned === null) {
-      return {} as Merge<Parent[`__TYPE_Damned`], Sin>;
-    }
     const sin = this.options.getSin?.(damned) ?? ({} as Sin);
-    // TODO allow customization
-    return { ...damned, ...sin } as Record<string, unknown> as Merge<
+
+    Object.assign(damned, sin);
+
+    return damned as Record<string, unknown> as Merge<
       Parent[`__TYPE_Damned`],
       Sin
     >;
@@ -396,14 +428,14 @@ class Ring<
     ...meta: MetaParameters<this, K>
   ): AggregatePermissions<this, K>;
   public can<K extends AggregatePermissionKeys<this>>(
-    user: P0<Parent[`__TYPE_getUser`]> | Parent[`__TYPE_User`] | null,
+    user: P0<Parent[`getUser`]> | Parent[`getUser`] | null,
     action: K,
     ...meta: MetaParameters<this, K>
-  ): HasPromiseNoDistribution<ReturnType<Parent[`__TYPE_getUser`]>> extends true
+  ): HasPromiseNoDistribution<ReturnType<Parent[`getUser`]>> extends true
     ? MaybePromise<Awaited<AggregatePermissions<this, K>>>
     : AggregatePermissions<this, K>;
   public can(
-    user: P0<Parent[`__TYPE_getUser`]> | null,
+    user: P0<Parent[`getUser`]> | null,
     action: string,
     ...meta: any
   ): MaybePromise<boolean | undefined> {
@@ -411,7 +443,7 @@ class Ring<
     if (isPromise(u)) {
       return u.then((u) => this.inquire(u, action, ...meta).value());
     }
-    return this.parent.inquire(user, action, ...meta).value();
+    return this.inquire(u, action, ...meta).value();
   }
 
   public inquire(
@@ -426,7 +458,7 @@ class Ring<
       return res;
     }
 
-    const user = this.damn(res.damned);
+    const user = res.damned === null ? null : this.damn(res.damned);
 
     if (action in this.permissions === false) {
       return {
@@ -472,6 +504,20 @@ class Ring<
       processed: true,
     };
   }
+
+  /**
+   * Summons a user to the current location
+   */
+  public summon(user: Parent[`__TYPE_User`]) {
+    return this.damn(this.parent.summon(user));
+  }
 }
 
 export { Hellgate, Ring };
+export type {
+  IRing,
+  Permission,
+  PermissionFunction,
+  PermissionFunctionProperties,
+  MetaFunction,
+};
