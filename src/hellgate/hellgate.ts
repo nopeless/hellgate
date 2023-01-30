@@ -335,6 +335,7 @@ class Hellgate<
     const sin = this.options.getSin?.(user) ?? ({} as Sin);
 
     const u: typeof user = { ...user };
+    Reflect.setPrototypeOf(u, Object.getPrototypeOf(user));
 
     Object.assign(u, sin);
 
