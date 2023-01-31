@@ -71,11 +71,13 @@ type PermissionFunctionProperties<V extends boolean | undefined> = {
 type PermissionFunction<
   This = never,
   User extends Record<string, unknown> = never,
+  Action extends string = never,
   Meta extends unknown[] = never[]
+  // Rarely used
 > = ((
   this: This,
   user: User | null,
-  action: string,
+  action: Action,
   ...meta: Meta
 ) => MaybePromise<boolean | undefined>) &
   PermissionFunctionProperties<boolean | undefined>;
@@ -102,7 +104,7 @@ type Permission<This = never, User extends Record<string, unknown> = never> =
 type PermissionWide<
   This = never,
   User extends Record<string, unknown> = never
-> = undefined | boolean | PermissionFunction<This, User, unknown[]>;
+> = undefined | boolean | PermissionFunction<This, User, string, unknown[]>;
 
 type Permissions<
   This = never,
@@ -318,7 +320,8 @@ class Hellgate<
       if (Object.hasOwn(permission, `value`)) {
         value = wrap(permission.value);
       } else {
-        value = () => permission.bind(this)(user, action, ...(meta as never[]));
+        value = () =>
+          permission.bind(this)(user, action as never, ...(meta as never[]));
       }
     } else {
       value = () => permission;
@@ -485,7 +488,8 @@ class Ring<
       if (Object.hasOwn(permission, `value`)) {
         value = wrap(permission.value);
       } else {
-        value = () => permission.bind(this)(user, action, ...(meta as never[]));
+        value = () =>
+          permission.bind(this)(user, action as never, ...(meta as never[]));
       }
     } else {
       value = () => permission;

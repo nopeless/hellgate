@@ -32,7 +32,7 @@ describe(`types`, () => {
     type mf1 = MetaFunction<() => boolean>;
     assert<Equals<mf1, () => unknown>>();
 
-    type mf2 = MetaFunction<PermissionFunction<never, never, unknown[]>>;
+    type mf2 = MetaFunction<PermissionFunction<never, never, never, unknown[]>>;
     type c1 = MergeParameters<[mf2]>;
     assert<Equals<c1, unknown[]>>();
     type mp1 = MergeParameters<[mf1, mf2]>;
