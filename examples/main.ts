@@ -69,4 +69,11 @@ assert(mutedChat.can(`aresiel`, `emote`)); // true
 assert(!mutedChat.can(`yung`, `emote`)); // false
 assert(!mutedChat.can(`catt`, `emote`)); // false
 
+// User does not exist
+assert(!mutedChat.can(`mike`, `emote`)); // false
+
+// pass in user literal
+const user = server.getUser({ role: `admin` });
+assert(server.can(user, `chat`)); // true
+
 export {};
