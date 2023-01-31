@@ -8,8 +8,8 @@
   "scripts": {
     "test": "mocha",
     "test:coverage": "c8 mocha",
+    "test:build": "npx tsc --project ./test/tsconfig.json --noEmit",
     "build": "rimraf dist && tsc",
-    "build:test": "npx tsc --project ./test/tsconfig.json --noEmit",
     "lint": "eslint src test --ext ts --fix",
     "locov": "c8 --reporter=lcov npm test",
     "test:html": "c8 --reporter=html npm run test && echo Report generated at: $(pwd -W)/coverage/index.html"
