@@ -14,15 +14,6 @@ type MaybePromise<T> = T | Promise<T>;
 type Fn = (this: never, ...args: never[]) => unknown;
 type P0<F extends Fn> = Parameters<F>[0];
 
-function wrap(
-  v: boolean | undefined | (() => MaybePromise<boolean | undefined>)
-): () => MaybePromise<boolean | undefined> {
-  if (typeof v === `boolean` || v === undefined) {
-    return () => v;
-  }
-  return v;
-}
-
 function isObject(v: unknown): v is object {
   return Object(v) === v;
 }
@@ -318,7 +309,7 @@ class Hellgate<
     if (typeof permission === `function`) {
       final = permission.final ?? this.options.final;
       if (Object.hasOwn(permission, `value`)) {
-        value = wrap(permission.value);
+        value = () => permission.value;
       } else {
         value = () =>
           permission.bind(this)(user, action as never, ...(meta as never[]));
@@ -486,7 +477,7 @@ class Ring<
       override = permission.override ?? this.options.override;
       final = permission.final ?? this.options.final;
       if (Object.hasOwn(permission, `value`)) {
-        value = wrap(permission.value);
+        value = () => permission.value;
       } else {
         value = () =>
           permission.bind(this)(user, action as never, ...(meta as never[]));
