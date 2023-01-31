@@ -18,11 +18,7 @@ class MockDatabase<U extends Record<string, unknown>> {
   }
 
   public get getUserSync() {
-    return (key: U | string | null): U | null => {
-      if (key === null) {
-        return null;
-      }
-
+    return (key: U | string): U | null => {
       if (typeof key === `string`) {
         return this.data[key] ?? null;
       }
