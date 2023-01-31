@@ -180,14 +180,7 @@ class Underworld<O extends Record<string, readonly string[]>> {
     ) as string[];
   }
 
-  public verify() {
-    // TODO
-  }
-
-  public static verify(
-    graph: Record<string, readonly string[]>,
-    errors: [] = []
-  ) {
+  public static verify(graph: Record<string, readonly string[]>) {
     const { faults } = defineDirectedGraph(graph);
     return [...faults];
   }
