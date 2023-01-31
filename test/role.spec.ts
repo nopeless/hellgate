@@ -46,6 +46,9 @@ describe(`role`, function () {
             (u?.hasStatus(`user`) && !u.hasRole(`muted`))
           );
         },
+        adminEmote(u) {
+          return u?.hasRole(`admin`);
+        },
         async modify(u, _, u2: string) {
           const user2 = await this.getUser(u2);
           if (user2 === null) {
@@ -65,5 +68,11 @@ describe(`role`, function () {
     await expect(hellgate.can(`nop`, `modify`, `rem`)).to.eventually.be.false;
     await expect(hellgate.can(`rem`, `modify`, `nop`)).to.eventually.be.false;
     await expect(hellgate.can(`nop`, `modify`, `prak`)).to.eventually.be.true;
+
+    await expect(hellgate.can(`nop`, `adminEmote`)).to.eventually.be.true;
+
+    expect(() => {
+      addRoleSystem(underworld, () => [``], `hasRole`);
+    }).to.throw(/named/i);
   });
 });
