@@ -1,8 +1,9 @@
 // Adds role system
 import { Merge } from "../types";
 import { Underworld } from "../underworld";
+import type { Equals } from "tsafe";
 
-// TODO add validator for roleProperty
+// TODO add type validator for roleProperty
 
 function addRoleSystem<
   U extends Record<string, unknown>,
@@ -13,6 +14,12 @@ function addRoleSystem<
   getRoles: (user: U) => string[],
   statusesProperty: roleProperty = `statuses` as roleProperty
 ) {
+  const props = [`hasStatus`, `hasRole`, `higherThan`] as const;
+  if ((props as readonly string[]).includes(statusesProperty)) {
+    throw new Error(
+      `statuses property cannot be named '${statusesProperty}' which is already in use`
+    );
+  }
   return function (user: U) {
     const statuses = underworld.statusesOf(
       underworld.getValidStatusesFrom(getRoles(user))
@@ -31,11 +38,10 @@ function addRoleSystem<
         return underworld.compareStatuses(statuses, otherStatuses) > 0;
       },
     };
-    if (Object.hasOwn(o, statusesProperty)) {
-      throw new Error(
-        `statuses property cannot be named '${statusesProperty}' which is already in use`
-      );
-    }
+
+    // this is a type assertion with minimum library overhead
+    const _: Equals<keyof typeof o, (typeof props)[number]> = true;
+
     return Object.assign(o, { [statusesProperty]: statuses }) as Record<
       string,
       unknown
