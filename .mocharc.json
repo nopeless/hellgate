@@ -1,6 +1,7 @@
 {
     "loader": "tsx",
     "files": "test/**/*.spec.ts",
+    "recursive": true,
     "extension": [
         "ts"
     ],

@@ -3,6 +3,8 @@
 ## `getUser` to `getSin` inference fails when literal is method and not property
 
 > Affected versions: 2.0.3-beta
+> 
+> Tracking file `getusergetsin.spec.ts`
 
 ```ts
 // fails
