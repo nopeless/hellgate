@@ -4,7 +4,7 @@
       "node",
     ],
     "lib": [
-      // "ESNext",
+      "ESNext",
     ],
     "target": "es2022",
     "module": "es2022",
