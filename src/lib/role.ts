@@ -31,7 +31,7 @@ function addRoleSystem<
         return underworld.compareStatuses(statuses, otherStatuses) > 0;
       },
     };
-    if (statusesProperty in Object.keys(o)) {
+    if (Object.hasOwn(o, statusesProperty)) {
       throw new Error(
         `statuses property cannot be named '${statusesProperty}' which is already in use`
       );

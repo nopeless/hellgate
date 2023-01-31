@@ -7,8 +7,8 @@ import {
 } from "./faults";
 
 function objectExtends(a: Record<string, true>, b: Record<string, true>) {
-  for (const key in b) {
-    if (key in a === false) {
+  for (const key of Object.keys(b)) {
+    if (!Object.hasOwn(a, key)) {
       return 0;
     }
   }
@@ -18,7 +18,7 @@ function objectExtends(a: Record<string, true>, b: Record<string, true>) {
 function mergeObjects(objects: Record<string, true>[]) {
   const o: Record<string, true> = Object.create(null);
   for (const object of objects) {
-    for (const key in object) {
+    for (const key of Object.keys(object)) {
       o[key] = true;
     }
   }
@@ -52,7 +52,7 @@ function _defineChild(
   o[key] = true;
 
   for (const node of (() => {
-    if (key in graph) {
+    if (Object.hasOwn(graph, key)) {
       if (!Array.isArray(graph[key])) {
         faults.push(new TypeFault(graph[key], `string[]`, `graph['${key}']`));
         return [];
@@ -72,7 +72,7 @@ function _defineChild(
       [...path, key]
     );
     faults.push(...childFaults);
-    for (const k in childValue) {
+    for (const k of Object.keys(childValue)) {
       o[k] = true;
     }
   }
@@ -88,7 +88,7 @@ function defineDirectedGraph<Key extends string = string>(
   // inferred later
   const faults = [];
 
-  for (const key in graph) {
+  for (const key of Object.keys(graph) as Key[]) {
     const { faults: childFaults, value } = _defineChild(graph, key, cache);
     faults.push(...childFaults);
     cache[key] = value;
@@ -282,7 +282,7 @@ class Underworld<O extends Record<string, readonly string[]>> {
   public dump() {
     const graph: Record<string, string[]> = Object.create(null);
 
-    for (const key in this._graphInternal) {
+    for (const key of Object.keys(this._graphInternal)) {
       graph[key] = Object.keys(this._graphInternal[key]);
     }
 

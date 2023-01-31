@@ -265,7 +265,7 @@ class Hellgate<
   public exists<K extends string>(
     action: K
   ): action is K & keyof this[`permissions`] {
-    return action in this.permissions;
+    return Object.hasOwn(this.permissions, action);
   }
 
   public can<K extends AggregatePermissionKeys<this>>(
@@ -301,7 +301,7 @@ class Hellgate<
   ): InquiryResult {
     const user = cleanUser === null ? null : this.damn(cleanUser);
 
-    if (action in this.permissions === false) {
+    if (!Object.hasOwn(this.permissions, action)) {
       // Permission does not exist
       return {
         damned: user,
@@ -315,7 +315,7 @@ class Hellgate<
     let value: () => MaybePromise<boolean | undefined>;
     if (typeof permission === `function`) {
       final = permission.final ?? this.options.final;
-      if (`value` in permission) {
+      if (Object.hasOwn(permission, `value`)) {
         value = wrap(permission.value);
       } else {
         value = () => permission.bind(this)(user, action, ...(meta as never[]));
@@ -404,7 +404,9 @@ class Ring<
   public exists<K extends string>(
     action: K
   ): action is K & AggregatePermissionKeys<this> {
-    return action in this.permissions || this.parent.exists(action);
+    return (
+      Object.hasOwn(this.permissions, action) || this.parent.exists(action)
+    );
   }
 
   public get getUser() {
@@ -464,7 +466,7 @@ class Ring<
 
     const user = res.damned === null ? null : this.damn(res.damned);
 
-    if (action in this.permissions === false) {
+    if (!Object.hasOwn(this.permissions, action)) {
       return {
         damned: user,
         value: res.value,
@@ -480,7 +482,7 @@ class Ring<
     if (typeof permission === `function`) {
       override = permission.override ?? this.options.override;
       final = permission.final ?? this.options.final;
-      if (`value` in permission) {
+      if (Object.hasOwn(permission, `value`)) {
         value = wrap(permission.value);
       } else {
         value = () => permission.bind(this)(user, action, ...(meta as never[]));
