@@ -1,7 +1,6 @@
 import { bitwisePermission } from "@src/lib";
 import { Hellgate } from "hellgate";
 import { MockDatabase } from "./fixtures";
-import { assert } from "tsafe";
 
 enum Perm {
   /* eslint-disable */
