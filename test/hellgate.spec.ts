@@ -70,8 +70,6 @@ const db = new MockDatabase<User>({
   },
 });
 
-Promise;
-
 describe(`Hellgate`, function () {
   it(`example`, async function () {
     const hellgate = new Hellgate(
