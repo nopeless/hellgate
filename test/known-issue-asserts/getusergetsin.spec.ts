@@ -18,6 +18,9 @@ new Hellgate({
   },
   getSin(u) {
     // ISSUE
+    // @ts-expect-error
+    assert<Equals<typeof u, User>>();
+    // but
     assert<Equals<typeof u, Record<string, unknown> | User>>();
     return {};
   },
