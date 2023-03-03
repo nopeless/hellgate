@@ -54,6 +54,8 @@ describe(`Underworld`, function () {
 
     expect(underworld.faults[0] instanceof CircularReferenceFault);
 
+    expect(underworld.statuses).to.have.length(4);
+
     // User assigned non-array
     // @ts-expect-error
     underworld.graph.c = 1;

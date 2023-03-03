@@ -123,7 +123,9 @@ type Valid<O extends Record<string, readonly string[]>> =
     ? { [K in U | (keyof O & string)]: readonly ((keyof O & string) | U)[] }
     : never;
 
-class Underworld<O extends Record<string, readonly string[]>> {
+class Underworld<
+  O extends Record<string, readonly string[]> = Record<string, string[]>
+> {
   protected _dirty = false;
   protected _graph = {} as Valid<O>;
   protected _graphInternal = {} as Record<
@@ -134,6 +136,13 @@ class Underworld<O extends Record<string, readonly string[]>> {
   constructor(_graph: Valid<O> & O, public options: Options = {}) {
     // Overwrite default graph to trigger verification
     this.graph = _graph;
+  }
+
+  /**
+   * Returns all keys
+   */
+  get statuses() {
+    return Object.keys(this._graphInternal) as (keyof O & string)[];
   }
 
   get graph() {
