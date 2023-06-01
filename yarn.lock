@@ -1606,11 +1606,6 @@ normalize-path@^3.0.0, normalize-path@~3.0.0:
   resolved "https://registry.yarnpkg.com/normalize-path/-/normalize-path-3.0.0.tgz#0dcd69ff23a1c9b11fd0978316644a0388216a65"
   integrity sha512-6eZs5Ls3WtCisHWp9S2GUy8dqkpGi4BVSz3GaqiE6ezub0512ESztXUwUB6C6IKbQkY2Pnb/mD4WYojCRwcwLA==
 
-notation@^2.0.0:
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/notation/-/notation-2.0.0.tgz#8897aaf903e328a37b60298de69e6213d685fa85"
-  integrity sha512-7irCcJXENYi2n5PRh/huQvgZ66GMXabtYcOAqSulK/7yAKDa3gNZNDvp4Nydax6Pk1xC9a7UXvkYY9ao3iqb/w==
-
 object-inspect@^1.12.2, object-inspect@^1.9.0:
   version "1.12.3"
   resolved "https://registry.yarnpkg.com/object-inspect/-/object-inspect-1.12.3.tgz#ba62dffd67ee256c8c086dfae69e016cd1f198b9"
