@@ -10,7 +10,6 @@
     "module": "es2022",
     "esModuleInterop": true,
     "outDir": "./dist",
-    "resolveJsonModule": true,
     "allowJs": true,
     "declaration": true,
     "declarationMap": true,
