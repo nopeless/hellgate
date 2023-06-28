@@ -3,7 +3,7 @@
  */
 import assert from "node:assert";
 import { isPromise } from "util/types";
-import { Merge, MergeParameters } from "../types";
+import type { Merge, MergeParameters } from "../types.js";
 
 type HasPromiseNoDistribution<T> = (
   T extends Promise<unknown> ? true : false
@@ -156,7 +156,7 @@ type AggregatePermissionKeys<
     : never
   : never;
 
-type ArrayOfPermissionFunctions<
+export type ArrayOfPermissionFunctions<
   // User is an invariant; therefore any is needed
   R extends IRing<any>,
   A extends string
@@ -167,11 +167,15 @@ type ArrayOfPermissionFunctions<
       ? [
           ...ArrayOfPermissionFunctions<Pa, A>,
           ...(A extends keyof P
-            ? [MetaFunction<Extract<P[A], PermissionFunction>>]
+            ? P[A] extends Fn
+              ? [MetaFunction<Extract<P[A], PermissionFunction>>]
+              : []
             : [])
         ]
       : A extends keyof P
-      ? [MetaFunction<Extract<P[A], PermissionFunction>>]
+      ? P[A] extends Fn
+        ? [MetaFunction<Extract<P[A], PermissionFunction>>]
+        : []
       : []
     : []
   : [];
@@ -497,9 +501,8 @@ class Ring<
           return false;
         } else if (v === true) {
           return res.value() ?? true;
-        } else {
-          return res.value();
         }
+        return res.value();
       }),
       final,
       processed: true,

@@ -1,7 +1,7 @@
 import { assert, is } from "tsafe";
 import { Hellgate, Underworld } from "hellgate";
-import { MockDatabase } from "./fixtures";
-import { addRoleSystem } from "@src/lib";
+import { MockDatabase } from "./fixtures.js";
+import { addRoleSystem } from "@src/lib/index.js";
 
 type User = {
   roles: string[];
@@ -26,7 +26,7 @@ const underworld = new Underworld({
   muted: [],
 });
 
-describe(`role`, function () {
+test(`role`, function () {
   it(`example`, async function () {
     const hellgate = new Hellgate(
       {
@@ -63,13 +63,14 @@ describe(`role`, function () {
       }
     );
 
-    await expect(hellgate.can(`nop`, `mute`)).to.eventually.be.true;
-    await expect(hellgate.can(`prak`, `chat`)).to.eventually.be.false;
-    await expect(hellgate.can(`nop`, `modify`, `rem`)).to.eventually.be.false;
-    await expect(hellgate.can(`rem`, `modify`, `nop`)).to.eventually.be.false;
-    await expect(hellgate.can(`nop`, `modify`, `prak`)).to.eventually.be.true;
+    expect(await hellgate.can(`nop`, `mute`)).to.be.true;
+    expect(await hellgate.can(`prak`, `chat`)).to.be.false;
 
-    await expect(hellgate.can(`nop`, `adminEmote`)).to.eventually.be.true;
+    expect(await hellgate.can(`nop`, `modify`, `rem`)).to.be.false;
+    expect(await hellgate.can(`rem`, `modify`, `nop`)).to.be.false;
+    expect(await hellgate.can(`nop`, `modify`, `prak`)).to.be.true;
+
+    expect(await hellgate.can(`nop`, `adminEmote`)).to.be.true;
 
     expect(() => {
       addRoleSystem(underworld, () => [``], `hasRole`);

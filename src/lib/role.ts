@@ -1,6 +1,6 @@
 // Adds role system
-import { Merge } from "../types";
-import { Underworld } from "../underworld";
+import { Underworld } from "../underworld/index.js";
+import type { Merge } from "../types.js";
 import type { Equals } from "tsafe";
 
 // TODO add type validator for roleProperty

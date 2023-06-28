@@ -1,14 +1,19 @@
 {
-  "extends": "../tsconfig.json",
+  "extends": [
+    "../tsconfig.json",
+    "nopeless-config/tsconfig.test.json",
+  ],
   "compilerOptions": {
-    "types": [
-      "chai",
-      "chai-as-promised",
-      "mocha",
-      "node",
-    ]
+    "rootDir": "../",
+    "noEmit": true
   },
+  "references": [
+    {
+      "path": ".."
+    }
+  ],
   "include": [
-    "**/*.ts",
+    "./**/*.ts",
+    "../examples/**/*.ts"
   ]
 }

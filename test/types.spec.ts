@@ -1,6 +1,6 @@
 import { assert, Equals } from "tsafe";
-import type { MergeParameters } from "../src";
-import type { MetaFunction, PermissionFunction } from "@src/hellgate";
+import type { MergeParameters } from "@src/types.js";
+import type { MetaFunction, PermissionFunction } from "@src/hellgate/index.js";
 
 type f1 = () => number;
 type f2 = (a: number | string) => string;
@@ -13,7 +13,7 @@ type f5 = (u: unknown, u2: unknown, ...args: number[]) => symbol;
  *
  * In IDEs, you can fold the functions so you can see specific tests
  */
-describe(`types`, () => {
+test(`types`, () => {
   it(`MergeParameters`, () => {
     assert<Equals<MergeParameters<[]>, []>>();
     assert<Equals<MergeParameters<[() => unknown]>, []>>();

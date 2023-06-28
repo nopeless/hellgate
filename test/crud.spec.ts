@@ -1,4 +1,4 @@
-import { MockDatabase } from "./fixtures";
+import { MockDatabase } from "./fixtures.js";
 
 function crud(create: boolean, read: boolean, update: boolean, del: boolean) {
   return {
@@ -10,6 +10,8 @@ function crud(create: boolean, read: boolean, update: boolean, del: boolean) {
 }
 
 const crudFalse = crud(false, false, false, false);
+
+it.skip(`crud`);
 
 // const db = new MockDatabase({
 //     nop: {
@@ -27,7 +29,7 @@ const crudFalse = crud(false, false, false, false);
 //     }
 // });
 
-// describe(`main`, function () {
+// test(`main`, function () {
 //   it(`should work`, function () {
 //     const h = new Hellgate(
 //   });

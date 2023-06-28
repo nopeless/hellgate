@@ -1,6 +1,6 @@
-import { defineAbilities } from "@src/lib";
+import { defineAbilities } from "@src/lib/index.js";
 import { Hellgate } from "hellgate";
-import { MockDatabase } from "./fixtures";
+import { MockDatabase } from "./fixtures.js";
 import { assert } from "tsafe";
 
 type User = {
@@ -25,7 +25,7 @@ const db = new MockDatabase<User>({
   },
 });
 
-describe(`ability`, function () {
+test(`ability`, function () {
   it(`example`, async function () {
     type Perm = `read` | `manage` | `delete` | `w`;
     type Resource = `BlogPost` | `BlogComment`;

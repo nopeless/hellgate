@@ -20,7 +20,7 @@ function bitwisePermission<FieldKey extends string, E extends EnumType>(
     bit: number | keyof E
   ) => {
     if (typeof bit === `string`) {
-      bit = enum_[bit];
+      bit = enum_[bit]!;
     }
 
     assert(typeof bit === `number`, `bit must be a number`);

@@ -4,7 +4,7 @@ import {
   CircularReferenceFault,
   TypeFault,
   MissingKeyDefinitionFault,
-} from "./faults";
+} from "./faults.js";
 
 function objectExtends(a: Record<string, true>, b: Record<string, true>) {
   for (const key of Object.keys(b)) {
@@ -57,7 +57,7 @@ function _defineChild(
         faults.push(new TypeFault(graph[key], `string[]`, `graph['${key}']`));
         return [];
       }
-      return graph[key];
+      return graph[key]!;
     }
     faults.push(new MissingKeyDefinitionFault(key));
     // Returning early
@@ -72,7 +72,7 @@ function _defineChild(
       [...path, key]
     );
     faults.push(...childFaults);
-    for (const k of Object.keys(childValue)) {
+    for (const k of Object.keys(childValue!)) {
       o[k] = true;
     }
   }
@@ -91,7 +91,7 @@ function defineDirectedGraph<Key extends string = string>(
   for (const key of Object.keys(graph) as Key[]) {
     const { faults: childFaults, value } = _defineChild(graph, key, cache);
     faults.push(...childFaults);
-    cache[key] = value;
+    cache[key] = value!;
   }
   return { faults, value: cache };
 }
@@ -99,24 +99,6 @@ function defineDirectedGraph<Key extends string = string>(
 type Options = {
   strict?: boolean;
 };
-
-// function verifyDirectedGraphIsStrictHierarchial(
-//   graph: Record<string, Record<string, true>>
-// ) {
-//   const higher: Record<string, true> = Object.create(null);
-//   const faults = [];
-
-//   for (const [k, o] of Object.entries(graph)) {
-//     higher[k] = true;
-//     for (const v of Object.keys(o)) {
-//       if (higher[v]) {
-//         faults.push(new NonHierarchialFault(k, v));
-//       }
-//     }
-//   }
-
-//   return faults;
-// }
 
 type Valid<O extends Record<string, readonly string[]>> =
   O[keyof O][number] extends infer U extends string
@@ -229,7 +211,7 @@ class Underworld<
     const aggregate: Record<keyof O, true> = Object.create(null);
     for (const key of keys) {
       if (typeof key === `string`) {
-        for (const k of Object.keys(this._graphInternal[key])) {
+        for (const k of Object.keys(this._graphInternal[key]!)) {
           aggregate[k as keyof O] = true;
         }
       }
@@ -241,12 +223,11 @@ class Underworld<
         if (!aggregate[key]) return false;
       }
       return true;
-    } else {
-      for (const key of targets) {
-        if (aggregate[key]) return true;
-      }
-      return false;
     }
+    for (const key of targets) {
+      if (aggregate[key]) return true;
+    }
+    return false;
   }
 
   /**
@@ -285,7 +266,7 @@ class Underworld<
     const graph: Record<string, string[]> = Object.create(null);
 
     for (const key of Object.keys(this._graphInternal)) {
-      graph[key] = Object.keys(this._graphInternal[key]);
+      graph[key] = Object.keys(this._graphInternal[key]!);
     }
 
     // This should be safe enough

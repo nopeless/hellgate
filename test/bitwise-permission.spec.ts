@@ -1,9 +1,9 @@
-import { bitwisePermission } from "@src/lib";
+import { bitwisePermission } from "@src/lib/index.js";
 import { Hellgate } from "hellgate";
-import { MockDatabase } from "./fixtures";
+import { MockDatabase } from "./fixtures.js";
 
 enum Perm {
-  /* eslint-disable */
+  /* eslint-disable prettier/prettier */
   Inquire = 0b0000,
   Read    = 0b0001,
   Write   = 0b0011,
@@ -29,7 +29,7 @@ const db = new MockDatabase<User>({
   },
 });
 
-describe(`bitwise`, function () {
+test(`bitwise`, function () {
   it(`example`, async function () {
     const hellgate = new Hellgate(
       {

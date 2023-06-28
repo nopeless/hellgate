@@ -6,7 +6,7 @@ import {
   Underworld,
 } from "hellgate";
 
-describe(`Underworld`, function () {
+test(`Underworld`, function () {
   it(`basic usage`, function () {
     const underworld = new Underworld({
       a: [`b`, `c`],

@@ -1,5 +1,5 @@
 import { Hellgate } from "hellgate";
-import { MockDatabase } from "./fixtures";
+import { MockDatabase } from "./fixtures.js";
 
 type User = {
   role: `admin` | `moderator` | `user` | `muted`;
@@ -20,7 +20,7 @@ const db = new MockDatabase<User>({
   },
 });
 
-describe(`main`, function () {
+test(`main`, function () {
   it(`example`, function () {
     const notMutedPermission = (u: User | null) => !!u && u.role !== `muted`;
     const hellgate = new Hellgate(

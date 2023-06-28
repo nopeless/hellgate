@@ -1,6 +1,6 @@
-export * from "./hellgate";
+export * from "./hellgate.js";
 export type {
   Permission,
   PermissionFunction,
   PermissionFunctionProperties,
-} from "./hellgate";
+} from "./hellgate.js";

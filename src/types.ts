@@ -125,4 +125,4 @@ type Merge<L, R> = Id<
     SpreadProperties<L, R, OptionalPropertyNames<R> & keyof L>
 >;
 
-export { Merge };
+export type { Merge };

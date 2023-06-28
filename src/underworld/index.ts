@@ -1,2 +1,2 @@
-export * from "./faults";
-export * from "./underworld";
+export * from "./faults.js";
+export * from "./underworld.js";

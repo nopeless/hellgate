@@ -1,3 +1,3 @@
-import { Underworld } from "../underworld";
+import { Underworld } from "../underworld/index.js";
 
 export {};

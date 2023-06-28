@@ -33,10 +33,10 @@ function cartesian(...args: unknown[][]): unknown[][] {
   const r: unknown[][] = [],
     max = args.length - 1;
   function helper(arr: unknown[], i: number) {
-    for (let j = 0, l = args[i].length; j < l; j++) {
+    for (let j = 0, l = args[i]!.length; j < l; j++) {
       const a = arr.slice(0); // clone arr
-      a.push(args[i][j]);
-      if (i == max) r.push(a);
+      a.push(args[i]![j]);
+      if (i === max) r.push(a);
       else helper(a, i + 1);
     }
   }

@@ -1,27 +1,15 @@
 {
+  "extends": "nopeless-config/tsconfig.base.json",
   "compilerOptions": {
-    "types": [
-      "node",
-    ],
-    "lib": [
-      "ESNext",
-    ],
-    "target": "es2022",
-    "module": "es2022",
-    "esModuleInterop": true,
     "outDir": "./dist",
-    "allowJs": true,
-    "declaration": true,
-    "declarationMap": true,
-    "moduleResolution": "bundler",
-    "strictNullChecks": true,
-    "strict": true,
+    "moduleResolution": "NodeNext",
+    "rootDir": "./src",
     "paths": {
       "@src/*": [
         "./src/*"
       ],
       "hellgate": [
-        "./src"
+        "./src/index.js"
       ]
     }
   },
@@ -30,6 +18,7 @@
   ],
   "exclude": [
     "./node_modules",
-    "/archive/*"
+    "./dist",
+    "./archive/*"
   ],
 }

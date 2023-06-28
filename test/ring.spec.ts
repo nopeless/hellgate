@@ -1,7 +1,8 @@
 import { assert, Equals } from "tsafe";
 import { Hellgate, Ring } from "hellgate";
-import { cartesian, MockDatabase } from "./fixtures";
+import { cartesian, MockDatabase } from "./fixtures.js";
 import { isPromise } from "util/types";
+import { ArrayOfPermissionFunctions } from "@src/hellgate/hellgate.js";
 
 type User = {
   level: number;
@@ -19,7 +20,7 @@ const db = new MockDatabase<User>({
   },
 });
 
-describe(`Hellgate`, function () {
+test(`Hellgate`, function () {
   it(`example`, async function () {
     const hellgate = new Hellgate(
       {
@@ -68,15 +69,15 @@ describe(`Hellgate`, function () {
     expect(ring.exists(`canKill`)).to.be.true;
     expect(ring.exists(`notinring`)).to.be.true;
 
-    expect(ring.can(`nop`, `funk`)).to.eventually.be.true;
-    expect(ring.can(`tim`, `funk`)).to.eventually.be.true;
+    expect(await ring.can(`nop`, `funk`)).to.be.true;
+    expect(await ring.can(`tim`, `funk`)).to.be.true;
     // Permission is undefined
-    expect(ring.can(`prak`, `funk`)).to.eventually.be.undefined;
+    expect(ring.can(`prak`, `funk`)).to.be.undefined;
 
     ring.permissions.funk.value = false;
-    expect(ring.can(`nop`, `funk`)).to.be.false;
-    expect(ring.can(`tim`, `funk`)).to.be.false;
-    expect(ring.can(`prak`, `funk`)).to.be.false;
+    expect(await ring.can(`nop`, `funk`)).to.be.false;
+    expect(await ring.can(`tim`, `funk`)).to.be.false;
+    expect(await ring.can(`prak`, `funk`)).to.be.false;
 
     expect(ring.can(`nop`, `canKill`, `tim`)).to.be.false;
     expect(ring.can(`nop`, `canKill`, `prak`)).to.be.true;

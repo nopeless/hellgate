@@ -1,7 +1,9 @@
 import { assert } from "tsafe";
-import { Hellgate, Ring } from "hellgate";
-import { cartesian, MockDatabase } from "./fixtures";
+import { Hellgate, MergeParameters, Ring } from "hellgate";
+import { cartesian, MockDatabase } from "./fixtures.js";
 import { isPromise } from "util/types";
+
+import { ArrayOfPermissionFunctions } from "@src/hellgate/hellgate.js";
 
 type User = Partial<{
   cute: boolean;
@@ -70,7 +72,7 @@ const db = new MockDatabase<User>({
   },
 });
 
-describe(`Hellgate`, function () {
+test(`Hellgate`, function () {
   it(`example`, async function () {
     const hellgate = new Hellgate(
       {
@@ -96,9 +98,9 @@ describe(`Hellgate`, function () {
     );
 
     const a1 = hellgate.can(`nop`, `code`);
-    await expect(a1).to.eventually.be.true;
+    expect(await a1).to.be.true;
     assert<Awaited<typeof a1> extends boolean ? true : false>;
-    await expect(hellgate.can(`prak`, `code`)).to.eventually.be.false;
+    expect(await hellgate.can(`prak`, `code`)).to.be.false;
 
     const r = new Ring(
       hellgate,
@@ -115,7 +117,7 @@ describe(`Hellgate`, function () {
     );
 
     const b1 = r.can(`nop`, `code`);
-    await expect(b1).to.eventually.be.false;
+    expect(await b1).to.be.false;
   });
   it(`logic:handwritten`, async function () {
     const hellgate = new Hellgate({
@@ -144,7 +146,7 @@ describe(`Hellgate`, function () {
     const nop = await hellgate.getUser(`nop`);
 
     for (const p of [true, () => true, f]) {
-      hellgate.permissions[`w`] = p;
+      hellgate.permissions.w = p;
       const a1 = hellgate.can(nop, `w`);
       assert<
         typeof a1 extends infer U
@@ -166,7 +168,7 @@ describe(`Hellgate`, function () {
       }
     );
   });
-  describe(`logic:fuzztest`, function () {
+  test(`logic:fuzztest`, function () {
     const hellgate = new Hellgate(
       {
         getUser: db.getUserSync,
@@ -215,13 +217,13 @@ describe(`Hellgate`, function () {
 
       // The two assigns below are not type checked
       // so be careful
-      Object.assign(hellgate.permissions[`perm`], {
+      Object.assign(hellgate.permissions.perm, {
         value: value1,
         override: override1,
         final: final1,
       });
 
-      Object.assign(ring.permissions[`perm`], {
+      Object.assign(ring.permissions.perm, {
         value: value2,
         override: override2,
         final: final2,

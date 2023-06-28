@@ -34,12 +34,11 @@ class ProxyUser<
     resource: string,
     condition: Bfn<User> | boolean | undefined = true
   ) {
-    this.permissionBucket[action] =
-      this.permissionBucket[action] ?? Object.create(null);
-    this.permissionBucket[action][resource] =
-      this.permissionBucket[action][resource] ?? [];
+    const permissionAction = (this.permissionBucket[action] ??=
+      Object.create(null));
+    const permissionResource = (permissionAction[resource] ??= []);
 
-    this.permissionBucket[action][resource].push(wrap(condition));
+    permissionResource.push(wrap(condition));
   }
 
   /**
@@ -70,7 +69,7 @@ class ProxyUser<
       ) => {
         if (user === null) return false;
         const conditions = bucket[resource];
-        for (const condition of conditions) {
+        for (const condition of conditions!) {
           const result = condition(user);
           if (result !== undefined) return result;
         }
