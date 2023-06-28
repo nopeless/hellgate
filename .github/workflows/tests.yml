@@ -7,20 +7,16 @@ jobs:
       - name: Check out Git repository
         uses: actions/checkout@v3.3.0
 
-      - name: Set head
-        run: git remote set-head origin main
-
-      - name: Read .nvmrc
-        run: echo "::set-output name=NVMRC::$(cat .nvmrc)"
-        id: nvm
 
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: ${{ steps.nvm.outputs.NVMRC }}
+          node-version-file: .nvmrc
+
+      - run: npm i -g yarn
 
       - name: set up dependencies
-        run: yarn install --frozen-lockfile
+        run: yarn install --immutable
 
       - name: run lint
         uses: wearerequired/lint-action@v2
@@ -31,7 +27,7 @@ jobs:
           auto_fix: true
 
       - name: run coverage
-        run: npm run locov
+        run: yarn locov
 
       - name: Coveralls
         uses: coverallsapp/github-action@master
